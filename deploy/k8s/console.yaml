@@ -1,0 +1,141 @@
+# J3nna Mesh — console (the authority / root of trust).
+#
+# Mirrors the tested single-instance Docker topology (deploy/docker/compose.yaml).
+# Verified on MicroK8s v1.35.3 (single instance per role); CI does not run a cluster, so validate against your own.
+# replicas:1 is intentional — single instance per role for this release (see ../../docs/DEPLOYMENT.md).
+#
+# The console is a SINGLE active writer: its state (root key, CRL, users, enrollment)
+# is single-writer / file-based. HA here means "reschedule fast" (StatefulSet replicas:1
+# + a stable root-key Secret + a PVC). The console is the ROOT of trust
+# and is NOT a mesh peer — do not seed it, do not put it on discovery.
+#
+# IMPORTANT — root-key provenance (no keygen CLI exists; the key is generated on first run):
+#   1. First run WITHOUT CONSOLE_ROOT_KEY_REQUIRED generates /data/console-root.key on the PVC.
+#   2. Capture that file and load it into the Secret below (see DEPLOYMENT.md for kubectl create secret).
+#   3. Redeploy with CONSOLE_ROOT_KEY_REQUIRED=1 so a missing/mismounted key FAILS CLOSED
+#      (refuses to start) instead of silently minting a rogue authority that invalidates every grant.
+# This manifest assumes step 3 (REQUIRED=1 + Secret-mounted key). For a clean first bootstrap,
+# temporarily set CONSOLE_ROOT_KEY_REQUIRED to "0" and omit the root-key Secret mount.
+---
+# Placeholder Secret. REPLACE BEFORE USE. Do not commit real values.
+#
+# Recommended: do NOT apply this literal Secret; create the real one out-of-band, e.g.
+#   kubectl -n j3nna-mesh create secret generic console-secrets \
+#     --from-file=console-root.key=./console-root.key \
+#     --from-literal=vault-passphrase='<a-strong-passphrase>' \
+#     --from-literal=operator-token='<a-strong-operator-token>'
+# The console-root.key file is the JSON blob {"priv_b64":"..."} the console wrote on first run.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: console-secrets
+  namespace: j3nna-mesh
+type: Opaque
+stringData:
+  # REPLACE: the authority root key, the JSON {"priv_b64":"..."} captured from a first run.
+  console-root.key: "REPLACE-ME-with-the-captured-console-root.key-JSON-blob"
+  # REPLACE: vault passphrase (unlocks the encrypted user/token store).
+  vault-passphrase: "REPLACE-ME-vault-passphrase"
+  # REPLACE: bootstrap operator bearer token, used to approve enrollments via the API.
+  operator-token: "REPLACE-ME-operator-token"
+---
+# Headless Service — stable per-pod DNS (console-0.console.j3nna-mesh.svc...) for the StatefulSet.
+apiVersion: v1
+kind: Service
+metadata:
+  name: console-headless
+  namespace: j3nna-mesh
+  labels: { app.kubernetes.io/name: console, app.kubernetes.io/part-of: j3nna-mesh }
+spec:
+  clusterIP: None
+  selector: { app.kubernetes.io/name: console }
+  ports:
+    - { name: api, port: 8455, targetPort: 8455 }
+---
+# Normal Service — the routable name peers and operators dial: http://console:8455
+apiVersion: v1
+kind: Service
+metadata:
+  name: console
+  namespace: j3nna-mesh
+  labels: { app.kubernetes.io/name: console, app.kubernetes.io/part-of: j3nna-mesh }
+spec:
+  selector: { app.kubernetes.io/name: console }
+  ports:
+    - { name: api, port: 8455, targetPort: 8455 }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: console
+  namespace: j3nna-mesh
+  labels: { app.kubernetes.io/name: console, app.kubernetes.io/part-of: j3nna-mesh }
+spec:
+  serviceName: console-headless
+  replicas: 1            # single active writer — see DEPLOYMENT.md scaling model
+  selector:
+    matchLabels: { app.kubernetes.io/name: console }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: console }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532       # distroless nonroot uid (see deploy/docker/Dockerfile)
+        fsGroup: 65532         # so the PVC is writable by the nonroot user
+      containers:
+        - name: console
+          # BUILD AND PUSH YOUR OWN — no published image is claimed. Build with:
+          #   docker build -f deploy/docker/Dockerfile --build-arg MODULE=console \
+          #     -t ghcr.io/j3nnaai/mesh-console:0.1.0 . && docker push ghcr.io/j3nnaai/mesh-console:0.1.0
+          image: ghcr.io/j3nnaai/mesh-console:0.1.0   # placeholder ref — replace with your registry/tag
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: api, containerPort: 8455 }
+          env:
+            - { name: CONSOLE_ADDR, value: "0.0.0.0:8455" }       # bind all interfaces — reached by Service DNS
+            - { name: CONSOLE_VAULT, value: "/data/console-vault.enc" }
+            - { name: CONSOLE_ROOT_KEY, value: "/secrets/console-root.key" }
+            - { name: CONSOLE_CRL, value: "/data/console-crl.json" }
+            - { name: CONSOLE_ROOT_KEY_REQUIRED, value: "1" }     # fail closed if the root key is missing
+            - name: CONSOLE_VAULT_PASSPHRASE
+              valueFrom: { secretKeyRef: { name: console-secrets, key: vault-passphrase } }
+            # OPERATOR_TOKEN must be declared BEFORE CONSOLE_USERS — k8s resolves $(VAR)
+            # references only against vars defined earlier in this list.
+            - name: OPERATOR_TOKEN
+              valueFrom: { secretKeyRef: { name: console-secrets, key: operator-token } }
+            - name: CONSOLE_USERS
+              # operator bearer token -> "operator" identity, for enrollment approvals.
+              # Assembled from the Secret to avoid putting the token in plain env.
+              value: "$(OPERATOR_TOKEN)=operator"
+          volumeMounts:
+            - { name: data, mountPath: /data }
+            - { name: root-key, mountPath: /secrets, readOnly: true }
+          # The console is an always-up HTTP server; /healthz never blocks (only AGENTS block on
+          # enrollment approval, not the console). So a normal startup/readiness/liveness trio is fine here.
+          startupProbe:
+            httpGet: { path: /healthz, port: 8455 }
+            periodSeconds: 5
+            failureThreshold: 30      # ~150s grace for image pull + cold start
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8455 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8455 }
+            periodSeconds: 20
+            failureThreshold: 3
+      volumes:
+        - name: root-key
+          secret:
+            secretName: console-secrets
+            items:
+              - { key: console-root.key, path: console-root.key }
+            defaultMode: 0400
+  volumeClaimTemplates:
+    - metadata:
+        name: data            # /data — vault + CRL (the root key comes from the Secret, not here)
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

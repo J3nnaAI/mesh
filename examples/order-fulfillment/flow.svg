@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 220" width="780" height="220"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ab" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto">
+      <path d="M0,0 L7.5,3 L0,6 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="ao" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto">
+      <path d="M0,0 L7.5,3 L0,6 Z" fill="#ea580c"/>
+    </marker>
+  </defs>
+
+  <!-- agent boxes -->
+  <g font-size="15" font-weight="600" text-anchor="middle">
+    <rect x="24"  y="36" width="112" height="50" rx="10" fill="#2563eb"/>
+    <text x="80"  y="66" fill="#ffffff">Intake</text>
+    <rect x="274" y="36" width="112" height="50" rx="10" fill="#2563eb"/>
+    <text x="330" y="66" fill="#ffffff">Pricing</text>
+    <rect x="520" y="36" width="132" height="50" rx="10" fill="#2563eb"/>
+    <text x="586" y="66" fill="#ffffff">Fulfillment</text>
+  </g>
+
+  <!-- done -->
+  <circle cx="734" cy="61" r="18" fill="#16a34a"/>
+  <text x="734" y="67" fill="#ffffff" text-anchor="middle" font-size="16" font-weight="700">&#10003;</text>
+
+  <!-- happy-path arrows (events emitted onto the room/event-bus) -->
+  <g stroke="#2563eb" stroke-width="2">
+    <line x1="136" y1="61" x2="266" y2="61" marker-end="url(#ab)"/>
+    <line x1="386" y1="61" x2="512" y2="61" marker-end="url(#ab)"/>
+    <line x1="652" y1="61" x2="711" y2="61" marker-end="url(#ab)"/>
+  </g>
+  <g font-size="12.5" text-anchor="middle">
+    <g><rect x="170" y="40" width="66" height="20" rx="10" fill="#dbeafe"/><text x="203" y="54" fill="#1e3a8a">received</text></g>
+    <g><rect x="423" y="40" width="52" height="20" rx="10" fill="#dbeafe"/><text x="449" y="54" fill="#1e3a8a">priced</text></g>
+    <g><rect x="655" y="40" width="56" height="20" rx="10" fill="#dbeafe"/><text x="683" y="54" fill="#1e3a8a">fulfilled</text></g>
+  </g>
+
+  <!-- feedback loop: backordered (Fulfillment -> Intake) and restocked (Intake -> Fulfillment) -->
+  <g fill="none" stroke="#ea580c" stroke-width="2">
+    <path d="M576,86 C540,132 132,132 88,88" marker-end="url(#ao)"/>
+    <path d="M96,88 C150,182 522,182 596,88" marker-end="url(#ao)"/>
+  </g>
+  <g font-size="12.5" text-anchor="middle">
+    <g><rect x="288" y="118" width="88" height="20" rx="10" fill="#ffedd5"/><text x="332" y="132" fill="#9a3412">backordered</text></g>
+    <g><rect x="298" y="168" width="74" height="20" rx="10" fill="#ffedd5"/><text x="335" y="182" fill="#9a3412">restocked</text></g>
+  </g>
+
+  <text x="586" y="178" text-anchor="middle" font-size="12.5" font-style="italic" fill="#ea580c">the feedback loop</text>
+</svg>

@@ -1,0 +1,34 @@
+# Allowlist for the monorepo-root build context: ignore everything, then re-include only the Go modules
+# the showcase image needs. Keeps the build context tiny and free of unrelated (or private) material.
+*
+!j3nna-mesh
+j3nna-mesh/*
+!j3nna-mesh/jip
+j3nna-mesh/jip/conformance
+!j3nna-mesh/agentkit
+!j3nna-mesh/kernel
+!j3nna-mesh/vault
+!j3nna-mesh/console
+!j3nna-mesh/signal-bridge
+!j3nna-mesh/room-view
+!j3nna-mesh/monitor
+!j3nna-mesh/examples
+j3nna-mesh/examples/*
+!j3nna-mesh/examples/showcase
+j3nna-mesh/examples/showcase/*
+!j3nna-mesh/examples/showcase/inventory-svc
+!j3nna-mesh/examples/showcase/quote-svc
+!j3nna-mesh/examples/showcase/dispatch-svc
+!j3nna-mesh/examples/showcase/desk
+!j3nna-mesh/examples/showcase/carrier
+!j3nna-mesh/examples/showcase/registrar
+!j3nna-mesh/examples/showcase/operator
+# never ship identities, vault files, build outputs, or git metadata
+**/.git
+**/*.id
+**/*.enc
+**/inventory-svc/inventory-svc
+**/quote-svc/quote-svc
+**/dispatch-svc/dispatch-svc
+**/desk/desk
+**/carrier/carrier

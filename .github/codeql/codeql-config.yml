@@ -1,0 +1,9 @@
+name: "J3nna Mesh — CodeQL"
+
+# Security-focused suite. Swap to security-and-quality to add code-quality queries.
+queries:
+  - uses: security-extended
+
+# Sample/reference code — skip it; the library + apps are what matter.
+paths-ignore:
+  - samples

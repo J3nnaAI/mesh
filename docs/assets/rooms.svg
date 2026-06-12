@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="760" height="340"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto">
+      <path d="M0,0 L7.5,3 L0,6 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrO" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto">
+      <path d="M0,0 L7.5,3 L0,6 Z" fill="#ea580c"/>
+    </marker>
+  </defs>
+
+  <!-- panel titles -->
+  <g text-anchor="middle" font-weight="700" fill="#1e3a8a" font-size="15">
+    <text x="190" y="26">public lobby</text>
+    <text x="565" y="26">private room</text>
+  </g>
+
+  <!-- ================= PUBLIC LOBBY (LEFT) ================= -->
+  <!-- room container -->
+  <rect x="24" y="40" width="332" height="208" rx="14" fill="#dbeafe"/>
+  <rect x="24" y="40" width="332" height="28" rx="14" fill="#bfdbfe"/>
+  <text x="190" y="59" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1e3a8a">room &#183; hosted by an ordinary peer</text>
+
+  <!-- peers joining freely (plain arrows in) -->
+  <g stroke="#2563eb" stroke-width="2" fill="none">
+    <line x1="78"  y1="148" x2="118" y2="148" marker-end="url(#arr)"/>
+    <line x1="190" y1="148" x2="190" y2="118" marker-end="url(#arr)"/>
+    <line x1="302" y1="148" x2="262" y2="148" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- three peer boxes inside the lobby -->
+  <g font-size="13.5" font-weight="600" text-anchor="middle">
+    <rect x="128" y="128" width="124" height="40" rx="9" fill="#2563eb"/>
+    <text x="190" y="153" fill="#ffffff">peer A</text>
+    <rect x="36"  y="180" width="96"  height="40" rx="9" fill="#2563eb"/>
+    <text x="84"  y="205" fill="#ffffff">peer B</text>
+    <rect x="248" y="180" width="96"  height="40" rx="9" fill="#2563eb"/>
+    <text x="296" y="205" fill="#ffffff">peer C</text>
+  </g>
+
+  <!-- lobby label pill -->
+  <g text-anchor="middle">
+    <rect x="106" y="78" width="168" height="24" rx="12" fill="#bfdbfe"/>
+    <text x="190" y="95" fill="#1e3a8a" font-size="12.5" font-weight="600">open chat &#183; join immediately</text>
+  </g>
+
+  <!-- ================= PRIVATE ROOM (RIGHT) ================= -->
+  <!-- room container -->
+  <rect x="404" y="40" width="332" height="208" rx="14" fill="#dbeafe"/>
+  <rect x="404" y="40" width="332" height="28" rx="14" fill="#bfdbfe"/>
+  <text x="588" y="59" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1e3a8a">room &#183; hosted by an ordinary peer</text>
+
+  <!-- entry gate / lock (orange) at the room boundary -->
+  <line x1="392" y1="148" x2="404" y2="148" stroke="#ea580c" stroke-width="2"/>
+  <g>
+    <rect x="358" y="132" width="34" height="30" rx="6" fill="#ea580c"/>
+    <!-- padlock shackle -->
+    <path d="M369,132 v-6 a6,6 0 0 1 12,0 v6" fill="none" stroke="#ffffff" stroke-width="2"/>
+    <!-- keyhole -->
+    <circle cx="375" cy="145" r="3" fill="#ffffff"/>
+    <rect x="374" y="146" width="2" height="6" fill="#ffffff"/>
+  </g>
+  <g text-anchor="middle">
+    <rect x="340" y="170" width="70" height="20" rx="10" fill="#ffedd5"/>
+    <text x="375" y="184" fill="#9a3412" font-size="11.5" font-weight="600">gate</text>
+  </g>
+
+  <!-- two members inside -->
+  <g font-size="13.5" font-weight="600" text-anchor="middle">
+    <rect x="448" y="118" width="116" height="40" rx="9" fill="#2563eb"/>
+    <text x="506" y="143" fill="#ffffff">member 1</text>
+    <rect x="612" y="180" width="116" height="40" rx="9" fill="#2563eb"/>
+    <text x="670" y="205" fill="#ffffff">member 2</text>
+  </g>
+
+  <!-- tool call arrow between two members inside -->
+  <line x1="540" y1="158" x2="636" y2="180" stroke="#ea580c" stroke-width="2" marker-end="url(#arrO)"/>
+  <g text-anchor="middle">
+    <rect x="540" y="148" width="74" height="20" rx="10" fill="#ffedd5"/>
+    <text x="577" y="162" fill="#9a3412" font-size="11.5" font-weight="600">tool call</text>
+  </g>
+
+  <!-- gating label pill -->
+  <g text-anchor="middle">
+    <rect x="440" y="78" width="288" height="24" rx="12" fill="#ffedd5"/>
+    <text x="584" y="95" fill="#9a3412" font-size="12" font-weight="600">owner approval &#183; key agreement &#183; per-tool grants</text>
+  </g>
+
+  <!-- host note -->
+  <text x="380" y="278" text-anchor="middle" font-size="12" fill="#475569">Each room is hosted by an ordinary peer (the host) &#8212; there is no central server.</text>
+
+  <!-- ================= BOTTOM CAPTION ================= -->
+  <text x="380" y="306" text-anchor="middle" font-size="11.5" font-style="italic" fill="#475569">Rooms are collaboration spaces hosted by an ordinary peer. Public lobbies admit anyone for chat; private rooms gate tool use</text>
+  <text x="380" y="322" text-anchor="middle" font-size="11.5" font-style="italic" fill="#475569">behind your approval, mutual key agreement, and per-tool grants.</text>
+</svg>

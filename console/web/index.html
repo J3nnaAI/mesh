@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-no-manage="false">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <title>Mesh Console — Authority</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- atmosphere layers (decorative, aria-hidden) -->
+  <div class="grain" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <header class="masthead" role="banner">
+    <div class="mast-left">
+      <div class="sigil" aria-hidden="true">
+        <span class="sigil-ring"></span>
+        <span class="sigil-core"></span>
+      </div>
+      <div class="mast-id">
+        <h1>MESH&nbsp;CONSOLE</h1>
+        <p class="mast-sub">Authority &middot; root of trust &middot; not a hub</p>
+      </div>
+    </div>
+    <div class="mast-right">
+      <div class="who" id="who" aria-live="polite">
+        <span class="who-dot" id="whoDot"></span>
+        <span class="who-label" id="whoLabel">connecting…</span>
+      </div>
+      <button class="settings-btn" id="settingsBtn" type="button" aria-haspopup="dialog" aria-controls="settingsPanel">
+        <span class="gear" aria-hidden="true"></span>
+        <span>Settings</span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Console sections">
+    <button class="tab" role="tab" data-section="overview"   aria-selected="true"  id="tab-overview">Overview</button>
+    <button class="tab" role="tab" data-section="enroll"     aria-selected="false" id="tab-enroll">
+      Enrollments <span class="tab-badge" id="pendingBadge" hidden>0</span>
+    </button>
+    <button class="tab" role="tab" data-section="identities" aria-selected="false" id="tab-identities">Identities</button>
+    <button class="tab" role="tab" data-section="revocation" aria-selected="false" id="tab-revocation">Revocation</button>
+    <button class="tab" role="tab" data-section="vault"      aria-selected="false" id="tab-vault">Vault</button>
+  </nav>
+
+  <main id="main">
+
+    <!-- OVERVIEW -->
+    <section class="view is-active" id="view-overview" role="tabpanel" aria-labelledby="tab-overview">
+      <p class="orient">This console originates identity and authorization for the mesh. Peers verify each other
+        <em>offline</em> against the root key below — the console enrolls, approves, grants, and revokes; it is never on the hot path.</p>
+
+      <div class="grid-overview">
+        <article class="panel span-2 reveal" style="--d:0">
+          <div class="panel-head">
+            <h2>Authority root key</h2>
+            <span class="kicker">ed25519 &middot; public</span>
+          </div>
+          <div class="cred cred-key" id="rootKeyChip">
+            <code class="cred-val" id="rootKey" title="">—</code>
+            <button class="copy" type="button" data-copy-target="rootKey" aria-label="Copy root public key">Copy</button>
+          </div>
+          <p class="panel-note">Peers pin this key and verify every grant and CRL against it with no further contact.</p>
+        </article>
+
+        <article class="panel stat reveal" style="--d:1">
+          <span class="stat-label">Protocol major</span>
+          <span class="stat-val" id="protoMajor">—</span>
+        </article>
+
+        <article class="panel stat reveal" style="--d:2">
+          <span class="stat-label">Console version</span>
+          <span class="stat-val" id="consoleVer">—</span>
+        </article>
+
+        <article class="panel stat reveal" style="--d:3">
+          <span class="stat-label">Vault</span>
+          <span class="stat-val" id="vaultState"><span class="dot dot-mute"></span>—</span>
+        </article>
+
+        <article class="panel stat stat-live reveal" style="--d:4">
+          <span class="stat-label">Pending approvals
+            <span class="pulse" id="pendingPulse" aria-hidden="true"></span>
+          </span>
+          <span class="stat-val" id="pendingCount">—</span>
+          <button class="ghost-link" type="button" data-goto="enroll">Review queue →</button>
+        </article>
+      </div>
+    </section>
+
+    <!-- ENROLLMENTS -->
+    <section class="view" id="view-enroll" role="tabpanel" aria-labelledby="tab-enroll" hidden>
+      <div class="view-head">
+        <div>
+          <h2>Enrollment queue</h2>
+          <p class="view-sub">The single ingress for the untrusted. Match each request's code to the one shown on the requester's device, then approve or deny.</p>
+        </div>
+        <div class="live-tag" id="enrollLive"><span class="live-dot"></span> live</div>
+      </div>
+      <div id="manageGateEnroll" class="gate" hidden></div>
+      <div id="enrollList" class="enroll-list" aria-live="polite"></div>
+    </section>
+
+    <!-- IDENTITIES -->
+    <section class="view" id="view-identities" role="tabpanel" aria-labelledby="tab-identities" hidden>
+      <div class="view-head">
+        <div>
+          <h2>Identities</h2>
+          <p class="view-sub">A bearer token proves who a caller is. One identity may hold several tokens — one per device or delegate.</p>
+        </div>
+        <button class="primary" id="mintBtn" type="button">+ Mint token</button>
+      </div>
+      <div id="manageGateIdent" class="gate" hidden></div>
+
+      <div class="panel reveal" style="--d:0">
+        <table class="ledger" id="usersTable">
+          <thead><tr><th>Identity</th><th>Token fingerprint</th></tr></thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+        <div class="empty" id="usersEmpty" hidden></div>
+      </div>
+
+      <article class="panel reveal" style="--d:1" id="revokeTokenPanel">
+        <div class="panel-head"><h3>Revoke a token</h3><span class="kicker">paste the full token</span></div>
+        <p class="panel-note">The table shows masked fingerprints only — the full token is never stored or displayed. To revoke a device, paste its complete token (the value shown once at mint).</p>
+        <form id="revokeTokenForm" class="inline-form" autocomplete="off">
+          <input class="mono-input" id="revokeTokenInput" type="text" inputmode="latin" spellcheck="false"
+                 placeholder="full token, e.g. 9f3c… (64 hex chars)" aria-label="Full token to revoke" required />
+          <button class="danger" type="submit">Revoke token</button>
+        </form>
+        <p class="form-msg" id="revokeTokenMsg" aria-live="polite"></p>
+      </article>
+    </section>
+
+    <!-- REVOCATION -->
+    <section class="view" id="view-revocation" role="tabpanel" aria-labelledby="tab-revocation" hidden>
+      <div class="view-head">
+        <div>
+          <h2>Revocation list</h2>
+          <p class="view-sub">Revoking a grant adds it to the signed CRL. Peers fetch the CRL on an interval (~30s) and evict the grant — and a revoked grant can never be renewed.</p>
+        </div>
+      </div>
+
+      <article class="panel reveal" style="--d:0">
+        <div class="panel-head"><h3>Revoke a grant</h3><span class="kicker">by grant id</span></div>
+        <form id="revokeGrantForm" class="inline-form" autocomplete="off">
+          <input class="mono-input" id="revokeGrantInput" type="text" spellcheck="false"
+                 placeholder="grant id (64 hex chars)" aria-label="Grant id to revoke" required />
+          <button class="danger" type="submit">Revoke grant</button>
+        </form>
+        <p class="form-msg" id="revokeGrantMsg" aria-live="polite"></p>
+      </article>
+
+      <div class="panel reveal" style="--d:1">
+        <div class="panel-head">
+          <h3>Current revocation list</h3>
+          <span class="kicker" id="crlMeta">—</span>
+        </div>
+        <table class="ledger" id="crlTable">
+          <thead><tr><th>Revoked grant id</th><th>Revoked</th></tr></thead>
+          <tbody id="crlBody"></tbody>
+        </table>
+        <div class="empty" id="crlEmpty" hidden></div>
+      </div>
+    </section>
+
+    <!-- VAULT -->
+    <section class="view" id="view-vault" role="tabpanel" aria-labelledby="tab-vault" hidden>
+      <div class="view-head">
+        <div>
+          <h2>Vault</h2>
+          <p class="view-sub">Encrypted secret storage. The console lists handle <em>names</em> only — values are sealed and never leave the vault, not even to this screen.</p>
+        </div>
+        <div class="vault-lock" id="vaultLockTag">—</div>
+      </div>
+      <div id="manageGateVault" class="gate" hidden></div>
+
+      <div class="panel reveal" style="--d:0">
+        <div class="panel-head">
+          <h3>Handles</h3>
+          <span class="kicker"><span class="shield" aria-hidden="true"></span> names only — values sealed</span>
+        </div>
+        <ul class="handles" id="handlesList"></ul>
+        <div class="empty" id="handlesEmpty" hidden></div>
+      </div>
+
+      <article class="panel reveal" style="--d:1">
+        <div class="panel-head"><h3>Add secret</h3></div>
+        <form id="vaultForm" class="stack-form" autocomplete="off">
+          <label>Handle
+            <input class="mono-input" id="vaultHandle" type="text" spellcheck="false" placeholder="api-key-name" required />
+          </label>
+          <label>Value
+            <input class="mono-input" id="vaultValue" type="password" spellcheck="false" placeholder="sealed on submit" required />
+          </label>
+          <label>Description
+            <input id="vaultDesc" type="text" placeholder="what this secret is for" />
+          </label>
+          <button class="primary" type="submit">Seal secret</button>
+        </form>
+        <p class="form-msg" id="vaultMsg" aria-live="polite"></p>
+      </article>
+    </section>
+
+  </main>
+
+  <!-- SETTINGS DRAWER -->
+  <div class="overlay" id="settingsPanel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" hidden>
+    <div class="drawer" role="document">
+      <div class="drawer-head">
+        <h2 id="settingsTitle">Settings</h2>
+        <button class="x" id="settingsClose" type="button" aria-label="Close settings">×</button>
+      </div>
+      <p class="drawer-note">Served from the console on localhost, no token is needed — loopback is trusted. For
+        <strong>remote</strong> access, paste a management bearer token below; it is stored only in this browser and sent on every request.</p>
+      <label class="drawer-label">Management token
+        <input class="mono-input" id="tokenInput" type="password" spellcheck="false" placeholder="optional bearer token" />
+      </label>
+      <div class="drawer-actions">
+        <button class="primary" id="tokenSave" type="button">Save token</button>
+        <button class="ghost" id="tokenClear" type="button">Clear</button>
+      </div>
+      <p class="form-msg" id="tokenMsg" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <!-- GENERIC MODAL (mint result, approve ceremony) -->
+  <div class="overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+    <div class="modal-card" id="modalCard" role="document"></div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <footer class="footer">
+    <span>Mesh Console</span>
+    <span class="sep">·</span>
+    <span>Apache-2.0</span>
+    <span class="sep">·</span>
+    <span id="footVer">—</span>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

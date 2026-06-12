@@ -1,0 +1,5 @@
+# .NET build artifacts — rebuilt on each run.
+bin/
+obj/
+# Per-peer identity files written by the example joiner (private keys — never commit).
+*.id

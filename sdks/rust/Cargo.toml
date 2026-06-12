@@ -1,0 +1,35 @@
+# Copyright 2026 J3nna Technologies, LLC
+# SPDX-License-Identifier: Apache-2.0
+[package]
+name = "j3nna_mesh"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "J3nna Mesh SDK for Rust — a JIP protocol peer (identity, enrollment, discovery, MCP, rooms)"
+publish = false
+
+[lib]
+name = "j3nna_mesh"
+path = "src/lib.rs"
+
+[dependencies]
+ed25519-dalek = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+hex = "0.4"
+base64 = "0.22"
+ureq = { version = "2", default-features = false, features = ["json"], optional = true }
+rand = "0.8"
+uuid = { version = "1", features = ["v4"] }
+
+[features]
+# `net` (the HTTP-using modules: enroll, discovery, mcp, rooms) is on by default for a native peer. Build
+# with --no-default-features to compile only the wire + identity core to WebAssembly — the transport then
+# lives in the host (e.g. the browser's fetch).
+default = ["net"]
+net = ["dep:ureq"]
+
+[[example]]
+name = "joiner"
+path = "examples/joiner.rs"

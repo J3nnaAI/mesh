@@ -1,0 +1,148 @@
+# J3nna Mesh — the showcase, as containers.
+#
+#   docker compose -f examples/showcase/docker-compose.yml up --build
+#   # then open the human chat UI and choose 1 or 2:
+#   open http://localhost:8487
+#
+# One of each role (a mesh peer is a cryptographically-pinned identity, not a stateless replica). Discovery
+# is gossip SEEDS off the signal-bridge (DISCOVER=false — multicast doesn't cross pods/containers); every
+# ADVERTISE is the service DNS name. The `operator` auto-approves enrollments so this comes up hands-free
+# (a human would approve in the console UI in production). The `registrar` registers the carrier webhook and
+# writes its HMAC secret to a shared volume the carrier reads.
+name: j3nna-mesh-showcase
+
+networks: { mesh: { driver: bridge } }
+
+x-img: &img
+  build: { context: ../../.., dockerfile: j3nna-mesh/examples/showcase/Dockerfile.go }
+  networks: [mesh]
+
+volumes: { console-state: , signal-state: , dispatch-state: , inventory-state: , quote-state: , desk-state: , roomview-state: , shared: }
+
+services:
+  console:
+    <<: *img
+    ports: ["8455:8455"]
+    command: ["/app/console"]
+    environment:
+      CONSOLE_ADDR: "0.0.0.0:8455"
+      CONSOLE_VAULT: "/data/console-vault.enc"
+      CONSOLE_ROOT_KEY: "/data/console-root.key"
+      CONSOLE_CRL: "/data/console-crl.json"
+      CONSOLE_VAULT_PASSPHRASE: "change-me-vault-passphrase"
+      CONSOLE_USERS: "showcase-operator-token=operator"
+    volumes: ["console-state:/data"]
+
+  operator:                     # DEV: auto-approves enrollments (a human does this in production)
+    <<: *img
+    depends_on: [console]
+    command: ["/app/operator"]
+    environment: { OP_CONSOLE: "http://console:8455", OP_TOKEN: "showcase-operator-token" }
+
+  signal-bridge:                # events + webhooks; also the gossip seed every peer bootstraps off
+    <<: *img
+    depends_on: [console]
+    command: ["/app/signal-bridge"]
+    environment:
+      SIGNAL_CONSOLE: "http://console:8455"
+      SIGNAL_LISTEN: "0.0.0.0:8483"
+      SIGNAL_ADVERTISE: "http://signal-bridge:8483"
+      SIGNAL_HTTP: "0.0.0.0:8484"
+      SIGNAL_DISCOVER: "false"
+      SIGNAL_VAULT: "/data/signal-vault.enc"
+      SIGNAL_IDENTITY: "/data/signal-bridge.id"
+      SIGNAL_VAULT_PASSPHRASE: "change-me-signal-passphrase"
+    volumes: ["signal-state:/data"]
+
+  registrar:                    # registers the carrier webhook → writes the HMAC secret to the shared volume.
+    # signal-bridge's /webhooks is loopback-gated, so the registrar shares signal-bridge's network namespace
+    # (its localhost IS signal-bridge's). signal-bridge — on the mesh network — then fires the webhook to the
+    # carrier service by DNS.
+    build: { context: ../../.., dockerfile: j3nna-mesh/examples/showcase/Dockerfile.go }
+    depends_on: [signal-bridge]
+    network_mode: "service:signal-bridge"
+    command: ["/app/registrar"]
+    environment:
+      REGISTRAR_SIGNAL: "http://127.0.0.1:8484"
+      REGISTRAR_CARRIER_URL: "http://carrier:8494/hook"
+      REGISTRAR_SECRET_FILE: "/shared/carrier.secret"
+    volumes: ["shared:/shared"]
+
+  carrier:                      # external system — verifies the HMAC-signed shipment webhook
+    <<: *img
+    depends_on: [registrar]
+    command: ["/app/carrier"]
+    environment: { CARRIER_LISTEN: "0.0.0.0:8494", CARRIER_HMAC_SECRET_FILE: "/shared/carrier.secret" }
+    volumes: ["shared:/shared"]
+
+  dispatch:                     # restricted inventory.reserve + own-vault manifest sign + signal
+    <<: *img
+    depends_on: [console, signal-bridge]
+    command: ["/app/dispatch-svc"]
+    environment:
+      DISPATCH_CONSOLE: "http://console:8455"
+      DISPATCH_SEEDS: "http://signal-bridge:8483"
+      DISPATCH_ADVERTISE: "http://dispatch:8492"
+      DISPATCH_LISTEN: "0.0.0.0:8492"
+      DISPATCH_DISCOVER: "false"
+      DISPATCH_VAULT: "/data/dispatch-vault.enc"
+      DISPATCH_VAULT_PASSPHRASE: "change-me-dispatch-passphrase"
+      DISPATCH_IDENTITY: "/data/dispatch.id"
+    volumes: ["dispatch-state:/data"]
+
+  inventory:                    # shared kernel; allow-lists dispatch (by its /whoami) for reserve
+    <<: *img
+    depends_on: [console, signal-bridge, dispatch]
+    command: ["/app/inventory-svc"]
+    environment:
+      INV_CONSOLE: "http://console:8455"
+      INV_SEEDS: "http://signal-bridge:8483"
+      INV_ADVERTISE: "http://inventory:8490"
+      INV_LISTEN: "0.0.0.0:8490"
+      INV_DISCOVER: "false"
+      INV_ALLOW_URLS: "http://dispatch:8492"
+      INV_IDENTITY: "/data/inventory.id"
+    volumes: ["inventory-state:/data"]
+
+  quote:                        # discovers inventory, invokes inventory.check
+    <<: *img
+    depends_on: [console, signal-bridge]
+    command: ["/app/quote-svc"]
+    environment:
+      QUOTE_CONSOLE: "http://console:8455"
+      QUOTE_SEEDS: "http://signal-bridge:8483"
+      QUOTE_ADVERTISE: "http://quote:8491"
+      QUOTE_LISTEN: "0.0.0.0:8491"
+      QUOTE_DISCOVER: "false"
+      QUOTE_IDENTITY: "/data/quote.id"
+    volumes: ["quote-state:/data"]
+
+  desk:                         # hosts the room, routes the human's 1/2
+    <<: *img
+    depends_on: [console, signal-bridge]
+    command: ["/app/desk"]
+    environment:
+      DESK_CONSOLE: "http://console:8455"
+      DESK_SEEDS: "http://signal-bridge:8483"
+      DESK_ADVERTISE: "http://desk:8493"
+      DESK_LISTEN: "0.0.0.0:8493"
+      DESK_DISCOVER: "false"
+      DESK_IDENTITY: "/data/desk.id"
+    volumes: ["desk-state:/data"]
+
+  room-view:                    # the human — chat UI on http://localhost:8487
+    <<: *img
+    depends_on: [console, signal-bridge, desk]
+    ports: ["8487:8487"]
+    command: ["/app/room-view"]
+    environment:
+      ROOMVIEW_CONSOLE: "http://console:8455"
+      ROOMVIEW_SEEDS: "http://signal-bridge:8483"
+      ROOMVIEW_LISTEN: "0.0.0.0:8485"
+      ROOMVIEW_ADVERTISE: "http://room-view:8485"
+      ROOMVIEW_HTTP: "0.0.0.0:8487"
+      ROOMVIEW_DISCOVER: "false"
+      ROOMVIEW_NAME: "patron"
+      ROOMVIEW_ROOM: "desk"
+      ROOMVIEW_IDENTITY: "/data/room-view.id"
+    volumes: ["roomview-state:/data"]

@@ -1,0 +1,14 @@
+# Allowlist for the flat published layout (context = repo root): the python SDK + the agents.
+*
+!sdks
+sdks/*
+!sdks/python
+!examples
+examples/*
+!examples/order-fulfillment
+examples/order-fulfillment/*
+!examples/order-fulfillment/agents
+!examples/order-fulfillment/inventory.jsonl
+**/.git
+**/__pycache__
+**/*.pyc

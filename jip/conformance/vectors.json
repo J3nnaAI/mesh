@@ -1,0 +1,101 @@
+{
+  "protocol": "JIP/0.1",
+  "protocol_major": 1,
+  "framing": "Every variable-length field is prefixed with a 4-byte big-endian length, then its raw bytes. Integers are 8-byte big-endian. Sets (capabilities, scopes) are sorted before framing. Signatures are ed25519 over the signing bytes (deterministic).",
+  "note": "Cross-language conformance fixtures. Regenerate with JIP_UPDATE_VECTORS=1 go test ./... -run TestConformanceVectors. SDKs in any language assert against this file.",
+  "vectors": [
+    {
+      "name": "presence-record",
+      "description": "PresencePayload.canonicalBytes — protocol, alg, id, pubkey, endpoint, mcp_path, sorted caps (count-prefixed), protocol_major (uint32), grant_id, heartbeat (uint64).",
+      "signer_public_key_hex": "79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+      "input": {
+        "alg": "ed25519",
+        "capabilities": [
+          "tools",
+          "chat"
+        ],
+        "endpoint": "http://10.0.0.5:8471",
+        "grant_id": "",
+        "heartbeat_unix": 1735689600,
+        "id": "11111111-1111-1111-1111-111111111111",
+        "mcp_path": "/mcp",
+        "protocol": "JIP/0.1",
+        "protocol_major": 1,
+        "public_key_hex": "79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664"
+      },
+      "signing_bytes_hex": "000000074a49502f302e3100000007656432353531390000002431313131313131312d313131312d313131312d313131312d3131313131313131313131310000002079b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad04966400000014687474703a2f2f31302e302e302e353a38343731000000042f6d637000000002000000046368617400000005746f6f6c7300000001000000000000000067748580",
+      "signature_b64": "m5FA9mpaG3Kca02bqRiIn5AtOvIXUbDIeFS98xm5GdPIsGlr5tID2m1ZZxiN6sMfXGb834tdjQyBxIOxxgX/Aw=="
+    },
+    {
+      "name": "grant",
+      "description": "GrantSigningBytes — domain 'J3nna-mesh-grant/1', alg, id, subject, pubkey, tier (uint64), sorted scopes (NUL-joined), issued_at, not_after (uint64). Signed by the AUTHORITY ROOT key.",
+      "signer_public_key_hex": "2543b92ff1095511476adc8369db6ddc933665a11978dda1404ee1066ca9559d",
+      "input": {
+        "alg": "ed25519",
+        "id": "grant-0001",
+        "issued_at": 1735689600,
+        "not_after": 1735693200,
+        "principal": "",
+        "public_key_hex": "79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+        "scopes": [
+          "tools:call",
+          "room:join"
+        ],
+        "subject": "11111111-1111-1111-1111-111111111111",
+        "tier": 3
+      },
+      "signing_bytes_hex": "000000124a336e6e612d6d6573682d6772616e742f3100000007656432353531390000000a6772616e742d303030310000002431313131313131312d313131312d313131312d313131312d3131313131313131313131310000002079b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664000000000000000300000014726f6f6d3a6a6f696e00746f6f6c733a63616c6c00000000677485800000000067749390",
+      "signature_b64": "YzjZ0Do2utj6yasZVLW2p1KQFZjciTdKmkYZilqvTCLwOFGObi6EEdezbRtWOaM3OaLbdSnbOEY0AWIHxWIYCg=="
+    },
+    {
+      "name": "callproof",
+      "description": "CallProof.signedBytes — domain 'JIP-call/0.2', alg, node_id, tool, args_hash, unix_milli (uint64). args_hash = sha256(canonical_json), where canonical_json = Go json.Marshal(args): keys sorted, '\u003c\u003e\u0026' HTML-escaped, '/' NOT escaped. args_canonical_json is the exact bytes an SDK must reproduce. Signed by the caller's NODE key.",
+      "signer_public_key_hex": "79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+      "input": {
+        "alg": "ed25519",
+        "args": {
+          "count": 3,
+          "html": "\u003cb\u003ea\u0026b\u003c/b\u003e",
+          "message": "hello/world",
+          "path": "/v1/tools"
+        },
+        "args_canonical_json": "{\"count\":3,\"html\":\"\\u003cb\\u003ea\\u0026b\\u003c/b\\u003e\",\"message\":\"hello/world\",\"path\":\"/v1/tools\"}",
+        "args_hash_hex": "4d26cb2e9313ef06dc5eb18de8ab32690330894d5c2acdec18fd14eac6cbe9df",
+        "node_id": "11111111-1111-1111-1111-111111111111",
+        "tool": "echo",
+        "unix_milli": 1735689600000
+      },
+      "signing_bytes_hex": "0000000c4a49502d63616c6c2f302e3200000007656432353531390000002431313131313131312d313131312d313131312d313131312d313131313131313131313131000000046563686f000000204d26cb2e9313ef06dc5eb18de8ab32690330894d5c2acdec18fd14eac6cbe9df000001941f297c00",
+      "signature_b64": "1iXJ0Ak/BgUTu5qy6j0wR0r84z2EhGacwWhx8NQsUUEHCnx43svtftDgRVhyXLEmhOOU+ZgR5ESKrc/moOSFBw=="
+    },
+    {
+      "name": "renewal",
+      "description": "RenewSigningBytes — domain 'J3nna-mesh-renew/1', alg, grant_id, subject, pubkey, issued_at (uint64), all length-prefixed except the trailing uint64. Signed by the peer's NODE key to prove possession of the grant's pinned key.",
+      "signer_public_key_hex": "79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+      "input": {
+        "alg": "ed25519",
+        "grant_id": "grant-0001",
+        "issued_at": 1735689600,
+        "public_key_hex": "79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+        "subject": "11111111-1111-1111-1111-111111111111"
+      },
+      "signing_bytes_hex": "000000124a336e6e612d6d6573682d72656e65772f3100000007656432353531390000000a6772616e742d303030310000002431313131313131312d313131312d313131312d313131312d3131313131313131313131310000002079b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad0496640000000067748580",
+      "signature_b64": "zJ65Tykmn/bV5pQKm/hGGGioMIsLVFkTFlspaUHJqdxikYDQp/xGbI0auEqB5/rR+9bR8DmQ2vgcSM1s4WGrCQ=="
+    },
+    {
+      "name": "crl",
+      "description": "CRLSigningBytes — ASCII 'J3nna-mesh-crl/1|\u003calg\u003e|\u003cissued_at\u003e|' then each revoked grant id in SORTED order, each followed by a comma. Revoked-at timestamps are NOT in the signed bytes. Signed by the AUTHORITY ROOT key.",
+      "signer_public_key_hex": "2543b92ff1095511476adc8369db6ddc933665a11978dda1404ee1066ca9559d",
+      "input": {
+        "alg": "ed25519",
+        "issued_at": 1735689600,
+        "revoked": {
+          "grant-0003": 1735689605,
+          "grant-0007": 1735689610
+        }
+      },
+      "signing_bytes_hex": "4a336e6e612d6d6573682d63726c2f317c656432353531397c313733353638393630307c6772616e742d303030332c6772616e742d303030372c",
+      "signature_b64": "pik91z9G65ftoD1IeDQeISAWHAsZNm/pKvUyhggNd7AJgAGk7yAzkBmi89WRHfXFynmPNLW/MP1x9rFR/oVxDw=="
+    }
+  ]
+}

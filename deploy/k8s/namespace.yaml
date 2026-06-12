@@ -1,0 +1,11 @@
+# J3nna Mesh — Kubernetes namespace.
+#
+# Mirrors the tested single-instance Docker topology (deploy/docker/compose.yaml).
+# Verified on MicroK8s v1.35.3 (single instance per role); CI does not run a cluster, so validate against your own.
+# replicas:1 in the workloads is intentional — single instance per role for this release (see ../../docs/DEPLOYMENT.md).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: j3nna-mesh
+  labels:
+    app.kubernetes.io/part-of: j3nna-mesh

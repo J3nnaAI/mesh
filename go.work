@@ -1,0 +1,12 @@
+go 1.26.4
+
+use ./jip
+use ./agentkit
+use ./kernel
+use ./vault
+use ./console
+use ./room-agent
+use ./room-view
+use ./signal-bridge
+use ./samples/joiner
+use ./monitor

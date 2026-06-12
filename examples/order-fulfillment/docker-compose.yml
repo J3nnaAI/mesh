@@ -1,0 +1,100 @@
+# Self-contained run of the order-fulfillment example. Build context is the MONOREPO ROOT (../../..) so the
+# Go builder can see every local module. Start it from THIS directory:
+#
+#   docker compose up --build --abort-on-container-exit --exit-code-from verifier
+#
+# The verifier's exit code is the result (0 = all invariants hold). The monitor's logs show every touch.
+# Startup order is handled by the apps themselves (each Go service waits for the console + seed; each agent
+# waits until its dependency capabilities answer MCP), so no compose healthchecks are needed.
+name: ofx
+
+x-go-build: &go-build
+  build:
+    context: ../..
+    dockerfile: examples/order-fulfillment/Dockerfile.go
+  image: ofx-go
+
+x-agent-env: &agent-env
+  OFX_CONSOLE: "http://console:18455"
+  OFX_SEEDS: "http://room-agent:18482"
+  OFX_ROOM: "ops"
+  OFX_SEED: "/app/inventory.jsonl"
+
+services:
+  console:
+    <<: *go-build
+    command: ["/app/console"]
+    environment:
+      CONSOLE_ADDR: "0.0.0.0:18455"
+      CONSOLE_VAULT_PASSPHRASE: "change-me"
+      CONSOLE_DEV_AUTOAPPROVE: "1"          # DEV-ONLY: auto-approve agent enrollments so the mesh self-runs
+      JIP_TELEMETRY_URL: "http://monitor:19000/events"
+
+  monitor:
+    image: ofx-go
+    command: ["/app/monitor"]
+    environment:
+      MONITOR_ADDR: "0.0.0.0:19000"
+    depends_on: [console]
+
+  room-agent:
+    image: ofx-go
+    command: ["/app/room-agent"]
+    environment:
+      ROOM_AGENT_CONSOLE: "http://console:18455"
+      ROOM_AGENT_ADVERTISE: "http://room-agent:18482"
+      ROOM_AGENT_LISTEN: "0.0.0.0:18482"
+      ROOM_AGENT_DISCOVER: "false"
+      JIP_TELEMETRY_URL: "http://monitor:19000/events"
+    depends_on: [console, monitor]
+
+  kernel-service:
+    image: ofx-go
+    command: ["/app/kernel-service"]
+    environment:
+      KSVC_CONSOLE: "http://console:18455"
+      KSVC_SEEDS: "http://room-agent:18482"
+      KSVC_ADVERTISE: "http://kernel-service:18490"
+      KSVC_LISTEN: "0.0.0.0:18490"
+      KSVC_SEED: "/app/inventory.jsonl"
+      JIP_TELEMETRY_URL: "http://monitor:19000/events"
+    depends_on: [console, room-agent, monitor]
+
+  vault-service:
+    image: ofx-go
+    command: ["/app/vault-service"]
+    environment:
+      VSVC_CONSOLE: "http://console:18455"
+      VSVC_SEEDS: "http://room-agent:18482"
+      VSVC_ADVERTISE: "http://vault-service:18491"
+      VSVC_LISTEN: "0.0.0.0:18491"
+      OFX_VAULT_PASSPHRASE: "dev-passphrase"
+      JIP_TELEMETRY_URL: "http://monitor:19000/events"
+    depends_on: [console, room-agent, monitor]
+
+  intake:
+    build:
+      context: ../..
+      dockerfile: examples/order-fulfillment/Dockerfile.py
+    image: ofx-py
+    command: ["python3", "/app/agents/intake.py"]
+    environment: *agent-env
+    depends_on: [room-agent, kernel-service]
+
+  pricing:
+    image: ofx-py
+    command: ["python3", "/app/agents/pricing.py"]
+    environment: *agent-env
+    depends_on: [room-agent, kernel-service]
+
+  fulfillment:
+    image: ofx-py
+    command: ["python3", "/app/agents/fulfillment.py"]
+    environment: *agent-env
+    depends_on: [room-agent, kernel-service, vault-service]
+
+  verifier:
+    image: ofx-py
+    command: ["python3", "/app/agents/verifier.py"]
+    environment: *agent-env
+    depends_on: [kernel-service, vault-service, intake, pricing, fulfillment]

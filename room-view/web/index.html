@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>Mesh Room</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="room" id="room">
+    <header class="topbar" id="topbar">
+      <div class="topbar__identity">
+        <span class="topbar__roomdot" aria-hidden="true"></span>
+        <div class="topbar__names">
+          <span class="topbar__room" id="roomName">room</span>
+          <span class="topbar__you">you are <b id="selfAlias">guest</b></span>
+        </div>
+      </div>
+      <button class="presence-toggle" id="presenceToggle" type="button" aria-expanded="false" aria-controls="presence">
+        <span class="presence-toggle__count" id="presenceCount">0</span>
+        <span class="presence-toggle__label">here</span>
+      </button>
+    </header>
+
+    <aside class="presence" id="presence" aria-label="Who is in the room" hidden>
+      <h2 class="presence__title">In the room</h2>
+      <ul class="presence__list" id="rosterList"></ul>
+    </aside>
+
+    <main class="transcript" id="transcript" aria-live="polite" aria-label="Messages">
+      <div class="screen screen--connecting" id="connecting">
+        <div class="pulse" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p class="screen__line">Finding the room…</p>
+        <p class="screen__sub">Settling in. This only takes a moment.</p>
+      </div>
+      <div class="screen screen--empty" id="empty" hidden>
+        <p class="screen__line">No messages yet.</p>
+        <p class="screen__sub">Say hello — the room is listening.</p>
+      </div>
+      <ol class="feed" id="feed" hidden></ol>
+    </main>
+
+    <div class="newpill" id="newpill" hidden role="button" tabindex="0">
+      <span class="newpill__arrow" aria-hidden="true">↓</span> New messages
+    </div>
+
+    <footer class="composer" id="composer">
+      <form class="composer__form" id="composerForm" autocomplete="off">
+        <label class="composer__field">
+          <span class="visually-hidden">Write a message</span>
+          <textarea
+            id="input"
+            class="composer__input"
+            rows="1"
+            placeholder="Write a message…"
+            enterkeyhint="send"
+            aria-label="Write a message"></textarea>
+        </label>
+        <button class="composer__send" id="send" type="submit" aria-label="Send message">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+            <path d="M4 11.5 19 4l-4.2 15-3.6-6.2L4 11.5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </form>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="assertive" hidden></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

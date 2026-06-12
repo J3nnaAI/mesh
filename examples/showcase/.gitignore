@@ -1,0 +1,11 @@
+# runtime artifacts — never commit
+*.id
+*.enc
+# built binaries (each service dir builds to its own name)
+inventory-svc/inventory-svc
+quote-svc/quote-svc
+dispatch-svc/dispatch-svc
+desk/desk
+carrier/carrier
+registrar/registrar
+operator/operator

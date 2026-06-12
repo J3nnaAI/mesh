@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 440" width="1280" height="440" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif" role="img" aria-label="J3nna Mesh — build your own authorized agent mesh. Decentralized and governed: a console is the root of trust, the jip protocol is the core, and the apps (agentkit, kernel, vault, room-agent, room-view, signal-bridge) connect as governed peers with no broker on the data path. Apache 2.0, pure-stdlib Go.">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0f1f"/>
+      <stop offset="1" stop-color="#0c1426"/>
+    </linearGradient>
+    <radialGradient id="bgGlow" cx="0.72" cy="0.42" r="0.55">
+      <stop offset="0" stop-color="#1d4e6b" stop-opacity="0.55"/>
+      <stop offset="0.55" stop-color="#142a52" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#0a0f1f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#818cf8"/>
+    </linearGradient>
+    <radialGradient id="nodeGlow">
+      <stop offset="0" stop-color="#38d6f0" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#38d6f0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="rootGlow">
+      <stop offset="0" stop-color="#a5b4fc" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#a5b4fc" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="coreGlow">
+      <stop offset="0" stop-color="#67e8f9" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#67e8f9" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- backdrop -->
+  <rect x="0" y="0" width="1280" height="440" rx="0" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1280" height="440" fill="url(#bgGlow)"/>
+
+  <!-- ───────────── left: wordmark + message ───────────── -->
+  <text x="72" y="196" font-size="66" font-weight="800" letter-spacing="-1.5" fill="#f8fafc">J3nna <tspan fill="url(#accent)">Mesh</tspan><tspan font-size="22" font-weight="600" dy="-26" fill="#9fb0d0">&#8482;</tspan></text>
+  <text x="74" y="240" font-size="22" font-weight="600" fill="#cbd5e1">Peer to peer discovery mesh for your AI agents and services.</text>
+  <text x="74" y="276" font-size="22" fill="#8aa0bd">Decentralized <tspan fill="#5b7290">and</tspan> governed.</text>
+  <line x1="75" y1="305" x2="123" y2="305" stroke="url(#accent)" stroke-width="3" stroke-linecap="round"/>
+  <text x="74" y="310" font-size="13.5" font-weight="600" fill="#94a3b8" letter-spacing="0.3">APACHE&#8201;2.0 &#183; PURE&#8209;STDLIB GO &#183; OPEN SOURCE</text>
+
+  <!-- ───────────── right: the mesh (apps as governed peers) ───────────── -->
+  <!-- governed link: console signs into the mesh -->
+  <line x1="960" y1="92" x2="960" y2="206" stroke="#818cf8" stroke-width="1.6" stroke-opacity="0.55" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <!-- spokes: everything builds on jip -->
+  <g stroke="#5eead4" stroke-opacity="0.22" stroke-width="1.4">
+    <line x1="960" y1="230" x2="846" y2="168"/>
+    <line x1="960" y1="230" x2="1074" y2="168"/>
+    <line x1="960" y1="230" x2="806" y2="268"/>
+    <line x1="960" y1="230" x2="1114" y2="268"/>
+    <line x1="960" y1="230" x2="906" y2="344"/>
+    <line x1="960" y1="230" x2="1014" y2="344"/>
+  </g>
+  <!-- peer-to-peer web (the mesh ring) -->
+  <g stroke="#7dd3fc" stroke-opacity="0.16" stroke-width="1.2">
+    <line x1="846" y1="168" x2="1074" y2="168"/>
+    <line x1="846" y1="168" x2="806" y2="268"/>
+    <line x1="1074" y1="168" x2="1114" y2="268"/>
+    <line x1="806" y1="268" x2="906" y2="344"/>
+    <line x1="1114" y1="268" x2="1014" y2="344"/>
+    <line x1="906" y1="344" x2="1014" y2="344"/>
+  </g>
+
+  <!-- root of trust: console -->
+  <circle cx="960" cy="72" r="40" fill="url(#rootGlow)"/>
+  <circle cx="960" cy="72" r="19" fill="#141b33" stroke="#a5b4fc" stroke-width="2"/>
+  <circle cx="960" cy="72" r="9" fill="none" stroke="#a5b4fc" stroke-width="1.6"/>
+  <circle cx="960" cy="72" r="2.4" fill="#c7d2fe"/>
+  <text x="960" y="34" font-size="13" font-weight="700" fill="#c7d2fe" text-anchor="middle">console</text>
+  <text x="960" y="124" font-size="11.5" fill="#7c89b8" text-anchor="middle">root of trust · off the hot path</text>
+
+  <!-- core: jip -->
+  <circle cx="960" cy="230" r="46" fill="url(#coreGlow)"/>
+  <circle cx="960" cy="230" r="24" fill="#0e2233" stroke="url(#accent)" stroke-width="2.5"/>
+  <text x="960" y="235" font-size="14" font-weight="800" fill="#e8fdff" text-anchor="middle">jip</text>
+  <text x="960" y="276" font-size="11" fill="#6b7f93" text-anchor="middle">protocol</text>
+
+  <!-- peers -->
+  <!-- room-view (top-left) -->
+  <circle cx="846" cy="168" r="28" fill="url(#nodeGlow)"/>
+  <circle cx="846" cy="168" r="13" fill="#11253a" stroke="#5eead4" stroke-width="1.8"/>
+  <text x="846" y="143" font-size="12" font-weight="600" fill="#a7e8e0" text-anchor="middle">room-view</text>
+  <!-- agentkit (top-right) -->
+  <circle cx="1074" cy="168" r="28" fill="url(#nodeGlow)"/>
+  <circle cx="1074" cy="168" r="14" fill="#11253a" stroke="#5eead4" stroke-width="2"/>
+  <text x="1074" y="143" font-size="12.5" font-weight="700" fill="#bff3ec" text-anchor="middle">agentkit</text>
+  <!-- signal-bridge (left) -->
+  <circle cx="806" cy="268" r="28" fill="url(#nodeGlow)"/>
+  <circle cx="806" cy="268" r="13" fill="#11253a" stroke="#5eead4" stroke-width="1.8"/>
+  <text x="806" y="300" font-size="12" font-weight="600" fill="#a7e8e0" text-anchor="middle">signal-bridge</text>
+  <!-- kernel (right) -->
+  <circle cx="1114" cy="268" r="28" fill="url(#nodeGlow)"/>
+  <circle cx="1114" cy="268" r="14" fill="#11253a" stroke="#5eead4" stroke-width="2"/>
+  <text x="1114" y="300" font-size="12.5" font-weight="700" fill="#bff3ec" text-anchor="middle">kernel</text>
+  <!-- room-agent (bottom-left) -->
+  <circle cx="906" cy="344" r="28" fill="url(#nodeGlow)"/>
+  <circle cx="906" cy="344" r="13" fill="#11253a" stroke="#5eead4" stroke-width="1.8"/>
+  <text x="906" y="376" font-size="12" font-weight="600" fill="#a7e8e0" text-anchor="middle">room-agent</text>
+  <!-- vault (bottom-right) -->
+  <circle cx="1014" cy="344" r="28" fill="url(#nodeGlow)"/>
+  <circle cx="1014" cy="344" r="13" fill="#11253a" stroke="#5eead4" stroke-width="1.8"/>
+  <text x="1014" y="376" font-size="12" font-weight="600" fill="#a7e8e0" text-anchor="middle">vault</text>
+</svg>

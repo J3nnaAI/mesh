@@ -1,0 +1,494 @@
+/* ============================================================================
+   Mesh Room — "Quantum Precision, in daylight"
+   A calm, premium light chat for people sharing a room with autonomous agents.
+   Pure CSS. System fonts only. No external assets. No build step.
+   ----------------------------------------------------------------------------
+   Brand: J3nna "Quantum Precision". All accent values are quoted VERBATIM from
+   the canonical palette (brand/palette.json) — never recalled from memory:
+     electric-violet  #4B0082   primary · brand indicator   -> the person (you)
+     quantum-teal     #00F5FF   secondary · connectivity     -> agents
+     plasma-pink      #FF00E5   tertiary · high-energy accent
+     steel-gray       #595959   subtle borders / dim text
+     midnight-void    #0D0D0D   true-depth — used here as INK, not background
+     Aurora signature gradient  #A855F7 -> #6366F1 -> #22D3EE @135deg
+       (palette usage note: "One accent moment per surface. Never wallpaper.")
+   ----------------------------------------------------------------------------
+   The brief warned against the purple-on-white cliché. The resolution: a cool
+   light "paper" ground (never flat #FFF), brand ink in near-black, and violet
+   used as a precise accent — not slathered. Teal marks agents, violet marks the
+   human, so the room is legible at a glance AND on-brand. Premium = restraint.
+   ============================================================================ */
+
+:root {
+  /* — Brand authority (verbatim from palette.json) — */
+  --electric-violet: #4B0082;
+  --quantum-teal: #00F5FF;
+  --plasma-pink: #FF00E5;
+  --steel-gray: #595959;
+  --midnight-void: #0D0D0D;
+  --obsidian: #1B1B1B;
+  --aurora-1: #A855F7;
+  --aurora-2: #6366F1;
+  --aurora-3: #22D3EE;
+
+  /* — Light "paper" ground: cool, faintly violet-tinted neutrals, not #FFF — */
+  --paper: #F6F5FA;          /* page base — softest cool white */
+  --surface: #FFFFFF;        /* raised cards / composer */
+  --surface-2: #EFEDF6;      /* recessed surfaces, peer bubbles */
+  --hairline: #E2DEEC;       /* cool light borders */
+  --hairline-soft: #ECE9F4;
+
+  /* — Ink (brand near-black, never pure #000) — */
+  --ink: #16131C;            /* primary text */
+  --ink-dim: #5C5668;        /* secondary */
+  --ink-faint: #8E889B;      /* tertiary / system lines */
+
+  /* — Voices — */
+  --you-grad-a: #5A1496;     /* the person: a refined violet, derived in-tone */
+  --you-grad-b: var(--electric-violet);
+  --you-ink: #FBF8FF;
+  --peer-bubble: #FFFFFF;    /* other people / agents */
+  --peer-ink: #211D2B;
+  --peer-edge: #E6E2F0;
+  --agent-edge: #0FB8C4;     /* teal-derived edge, AA-legible on white */
+
+  /* — Accent (the single brand moment) — */
+  --accent: var(--electric-violet);
+  --accent-soft: #7A33C0;
+  --accent-glow: rgba(75, 0, 130, 0.10);
+  --agent-mark: #0C7A82;     /* quantum-teal deepened for AA text — 5.09:1 on white (measured) */
+
+  /* — Type: system stack, made intentional through scale + tracking — */
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+
+  --t-xs: 0.72rem;
+  --t-sm: 0.82rem;
+  --t-base: 0.97rem;
+  --t-md: 1.06rem;
+  --t-lg: 1.3rem;
+
+  --lh-tight: 1.2;
+  --lh-body: 1.5;
+
+  /* — Rhythm — */
+  --r-1: 4px;  --r-2: 8px;  --r-3: 12px;  --r-4: 18px;  --r-5: 26px;  --r-6: 40px;
+
+  --radius-bubble: 18px;
+  --radius-card: 16px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 1px 2px rgba(22, 19, 28, 0.05), 0 8px 24px -14px rgba(40, 12, 70, 0.28);
+  --shadow-lift: 0 10px 30px -12px rgba(40, 12, 70, 0.30);
+  --shadow-you: 0 8px 22px -10px rgba(75, 0, 130, 0.45);
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --reveal: 520ms;
+}
+
+* { box-sizing: border-box; }
+
+/* [hidden] must always win over component display rules (.screen is flex, etc.).
+   The presence drawer opts out — it animates a transform and manages its own
+   off-screen state, so it keeps display while hidden. */
+[hidden]:not(.presence) { display: none !important; }
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  font-family: var(--font);
+  font-size: var(--t-base);
+  line-height: var(--lh-body);
+  color: var(--ink);
+  /* Faint cool light wash — atmosphere, not wallpaper. */
+  background:
+    radial-gradient(120% 70% at 50% -8%, #FFFFFF 0%, var(--paper) 46%, #F1EFF8 100%) fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  clip: rect(0 0 0 0); clip-path: inset(50%);
+  overflow: hidden; white-space: nowrap;
+}
+
+/* ── Room shell ─────────────────────────────────────────────────────────── */
+.room {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr;
+  height: 100dvh;
+  max-width: 760px;
+  margin: 0 auto;
+  position: relative;
+  background: var(--paper);
+  border-left: 1px solid var(--hairline-soft);
+  border-right: 1px solid var(--hairline-soft);
+}
+
+/* ── Top bar ────────────────────────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--r-3);
+  padding: calc(var(--r-3) + env(safe-area-inset-top, 0px)) var(--r-4) var(--r-3);
+  background: rgba(255, 255, 255, 0.82);
+  border-bottom: 1px solid var(--hairline);
+  backdrop-filter: saturate(1.4) blur(10px);
+  position: relative;
+  z-index: 5;
+}
+
+.topbar__identity { display: flex; align-items: center; gap: var(--r-3); min-width: 0; }
+
+.topbar__roomdot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--ink-faint); flex: none;
+  transition: background 400ms var(--ease), box-shadow 400ms var(--ease);
+}
+.room[data-state="joined"] .topbar__roomdot {
+  background: var(--electric-violet);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.topbar__names { min-width: 0; line-height: 1.25; }
+
+.topbar__room {
+  display: block;
+  font-size: var(--t-md);
+  font-weight: 680;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.topbar__room::before {
+  content: "#";
+  color: var(--electric-violet);
+  margin-right: 1px;
+  font-weight: 600;
+}
+
+.topbar__you {
+  display: block;
+  font-size: var(--t-xs);
+  color: var(--ink-dim);
+  letter-spacing: 0.01em;
+}
+.topbar__you b { color: var(--ink); font-weight: 600; }
+
+.presence-toggle {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  min-height: 44px; padding: 0 var(--r-4);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--ink-dim);
+  font-family: inherit; font-size: var(--t-sm); letter-spacing: 0.02em;
+  cursor: pointer; flex: none;
+  box-shadow: var(--shadow-card);
+  transition: border-color 200ms var(--ease), color 200ms var(--ease), box-shadow 200ms var(--ease);
+}
+.presence-toggle:hover { border-color: var(--accent-soft); color: var(--ink); }
+.presence-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.presence-toggle[aria-expanded="true"] {
+  background: var(--accent-glow);
+  border-color: var(--electric-violet);
+  color: var(--electric-violet);
+}
+.presence-toggle__count {
+  font-variant-numeric: tabular-nums; font-weight: 700;
+  font-size: var(--t-base); color: var(--ink);
+}
+
+/* ── Presence panel ─────────────────────────────────────────────────────── */
+.presence {
+  position: absolute; top: 0; right: 0;
+  width: min(300px, 84vw); height: 100%;
+  z-index: 8;
+  padding: calc(var(--r-5) + env(safe-area-inset-top, 0px)) var(--r-4) var(--r-4);
+  background: var(--surface);
+  border-left: 1px solid var(--hairline);
+  box-shadow: var(--shadow-lift);
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 320ms var(--ease);
+}
+.presence:not([hidden]) { transform: translateX(0); }
+.presence[hidden] { display: block; visibility: hidden; }
+
+.presence__title {
+  margin: 0 0 var(--r-3);
+  font-size: var(--t-xs); font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.presence__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--r-1); }
+
+.member {
+  display: flex; align-items: center; gap: var(--r-3);
+  padding: var(--r-2); border-radius: var(--r-3);
+}
+.member__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--agent-mark); }
+.member--human .member__dot { background: var(--electric-violet); }
+.member__name {
+  font-size: var(--t-sm); color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.member__tag {
+  margin-left: auto; font-size: 0.66rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 2px 7px; border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill); flex: none;
+}
+.member--agent .member__tag { color: var(--agent-mark); border-color: rgba(10, 166, 178, 0.4); }
+.member--human .member__tag { color: var(--accent-soft); border-color: rgba(75, 0, 130, 0.3); }
+.member--you .member__tag {
+  color: var(--you-ink);
+  background: linear-gradient(135deg, var(--you-grad-a), var(--you-grad-b));
+  border-color: transparent;
+}
+
+/* ── Transcript ─────────────────────────────────────────────────────────── */
+.transcript {
+  position: relative;
+  overflow-y: auto; overflow-x: hidden;
+  padding: var(--r-5) var(--r-4) var(--r-4);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
+}
+.transcript::-webkit-scrollbar { width: 8px; }
+.transcript::-webkit-scrollbar-thumb { background: var(--hairline); border-radius: 8px; }
+
+/* connecting / empty screens */
+.screen {
+  height: 100%; min-height: 50dvh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; gap: var(--r-2);
+  padding: var(--r-6) var(--r-4);
+}
+.screen__line { margin: 0; font-size: var(--t-lg); font-weight: 680; letter-spacing: -0.02em; color: var(--ink); }
+.screen__sub { margin: 0; font-size: var(--t-sm); color: var(--ink-dim); max-width: 30ch; }
+
+.pulse { display: flex; gap: 8px; margin-bottom: var(--r-3); }
+.pulse span {
+  width: 9px; height: 9px; border-radius: 50%;
+  opacity: 0.35;
+  animation: pulse 1.4s var(--ease) infinite;
+}
+/* the three dots trace the Aurora signature — the one accent moment here */
+.pulse span:nth-child(1) { background: var(--aurora-1); }
+.pulse span:nth-child(2) { background: var(--aurora-2); animation-delay: 0.18s; }
+.pulse span:nth-child(3) { background: var(--aurora-3); animation-delay: 0.36s; }
+@keyframes pulse {
+  0%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-5px); }
+}
+
+/* ── Feed + messages ────────────────────────────────────────────────────── */
+.feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--r-3); }
+
+/* system lines (joins, leaves, notices) */
+.sysline {
+  align-self: center; max-width: 80%; text-align: center;
+  font-size: var(--t-xs); color: var(--ink-faint);
+  letter-spacing: 0.01em; padding: var(--r-1) var(--r-3);
+}
+.sysline b { color: var(--ink-dim); font-weight: 600; }
+
+/* a chat message */
+.msg { display: flex; flex-direction: column; max-width: 78%; align-self: flex-start; }
+.msg--me { align-self: flex-end; align-items: flex-end; }
+
+/* grouping: tighten consecutive messages from same sender */
+.msg--grouped { margin-top: calc(-1 * var(--r-2)); }
+.msg--grouped .msg__meta { display: none; }
+/* own messages don't need a name label — the header already says who you are */
+.msg--me .msg__meta { display: none; }
+
+.msg__meta {
+  display: flex; align-items: center; gap: var(--r-2);
+  margin: 0 var(--r-2) 5px; font-size: var(--t-xs);
+}
+.msg__alias { font-weight: 680; color: var(--ink); letter-spacing: -0.005em; }
+.msg--agent .msg__alias { color: var(--agent-mark); }
+.msg__chip {
+  font-family: var(--font-mono); font-size: 0.66rem;
+  color: var(--ink-faint);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-2); padding: 1px 6px; letter-spacing: 0.02em;
+}
+
+.bubble {
+  position: relative;
+  padding: var(--r-3) var(--r-4);
+  border-radius: var(--radius-bubble);
+  font-size: var(--t-base); line-height: var(--lh-body);
+  white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;
+}
+
+/* other people / agents */
+.msg__bubble {
+  background: var(--peer-bubble);
+  color: var(--peer-ink);
+  border: 1px solid var(--peer-edge);
+  border-top-left-radius: var(--r-1);
+  box-shadow: var(--shadow-card);
+}
+/* agents carry a quantum-teal hairline edge — connectivity */
+.msg--agent .msg__bubble { border-left: 2px solid var(--agent-edge); }
+
+/* the person's own voice — the single Aurora-adjacent brand moment per surface */
+.msg--me .msg__bubble {
+  background: linear-gradient(135deg, var(--you-grad-a), var(--you-grad-b));
+  color: var(--you-ink);
+  border: none;
+  border-top-right-radius: var(--r-1);
+  box-shadow: var(--shadow-you);
+}
+
+.msg__time { font-size: 0.66rem; color: var(--ink-faint); margin: 4px var(--r-2) 0; }
+.msg--me .msg__time { text-align: right; }
+
+/* ── New-messages pill ──────────────────────────────────────────────────── */
+.newpill {
+  position: absolute; left: 50%;
+  bottom: calc(var(--composer-h, 88px) + var(--r-3));
+  transform: translateX(-50%) translateY(6px);
+  z-index: 6;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px var(--r-4); min-height: 40px;
+  background: var(--electric-violet);
+  color: #FBF8FF;
+  font-size: var(--t-sm); font-weight: 660;
+  border: none; border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-lift);
+  cursor: pointer; opacity: 0;
+  transition: opacity 220ms var(--ease), transform 220ms var(--ease);
+}
+.newpill:not([hidden]) { opacity: 1; transform: translateX(-50%) translateY(0); }
+.newpill:focus-visible { outline: 2px solid var(--quantum-teal); outline-offset: 2px; }
+.newpill__arrow { font-weight: 700; }
+
+/* ── Composer ───────────────────────────────────────────────────────────── */
+.composer {
+  background: rgba(255, 255, 255, 0.86);
+  border-top: 1px solid var(--hairline);
+  backdrop-filter: saturate(1.4) blur(10px);
+  padding: var(--r-3) var(--r-3) calc(var(--r-3) + env(safe-area-inset-bottom, 0px));
+  z-index: 5;
+}
+.composer__form { display: flex; align-items: flex-end; gap: var(--r-2); }
+.composer__field {
+  flex: 1 1 auto; display: block;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+  padding: 2px;
+  box-shadow: var(--shadow-card);
+  transition: border-color 180ms var(--ease), box-shadow 180ms var(--ease);
+}
+.composer__field:focus-within {
+  border-color: var(--electric-violet);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.composer__input {
+  display: block; width: 100%; resize: none;
+  max-height: 40dvh; border: none; background: transparent;
+  color: var(--ink); font-family: inherit;
+  font-size: var(--t-base); line-height: var(--lh-body);
+  padding: 11px var(--r-3); min-height: 44px;
+}
+.composer__input::placeholder { color: var(--ink-faint); }
+.composer__input:focus { outline: none; }
+
+.composer__send {
+  flex: none; width: 48px; height: 48px;
+  display: grid; place-items: center;
+  border: none; border-radius: 14px;
+  /* Aurora signature — one accent moment per surface */
+  background: linear-gradient(135deg, var(--aurora-1) 0%, var(--aurora-2) 50%, var(--aurora-3) 100%);
+  color: #FFFFFF;
+  cursor: pointer;
+  box-shadow: var(--shadow-you);
+  transition: transform 140ms var(--ease), filter 180ms var(--ease), opacity 180ms var(--ease);
+}
+.composer__send svg { transform: translateX(0.5px); }
+.composer__send:hover { filter: brightness(1.06) saturate(1.05); }
+.composer__send:active { transform: scale(0.92); }
+.composer__send:focus-visible { outline: 2px solid var(--electric-violet); outline-offset: 2px; }
+.composer__send:disabled { opacity: 0.45; cursor: default; transform: none; }
+
+.room[data-state="connecting"] .composer__input { opacity: 0.6; }
+
+/* ── Toast ──────────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed; left: 50%;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%) translateY(8px);
+  z-index: 20;
+  max-width: min(420px, 90vw);
+  padding: var(--r-3) var(--r-4);
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--electric-violet);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-lift);
+  font-size: var(--t-sm);
+  opacity: 0; transition: opacity 200ms var(--ease), transform 200ms var(--ease);
+  pointer-events: none;
+}
+.toast.toast--show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Page-load reveal ───────────────────────────────────────────────────── */
+.room { animation: shellIn var(--reveal) var(--ease) both; }
+.topbar { animation: dropIn var(--reveal) var(--ease) both; animation-delay: 60ms; }
+.composer { animation: riseIn var(--reveal) var(--ease) both; animation-delay: 140ms; }
+.transcript { animation: fadeIn var(--reveal) var(--ease) both; animation-delay: 110ms; }
+
+@keyframes shellIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dropIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+@keyframes riseIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.msg--enter { animation: msgIn 360ms var(--ease) both; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .pulse span { animation: none; opacity: 0.7; }
+  .presence { transition: none; }
+}
+
+/* ── Wider viewports: presence becomes a permanent rail ─────────────────── */
+@media (min-width: 880px) {
+  .room {
+    max-width: 1040px;
+    grid-template-columns: 1fr 300px;
+    grid-template-rows: auto 1fr auto;
+  }
+  .topbar { grid-column: 1 / -1; }
+  .composer { grid-column: 1 / 2; }
+  .transcript { grid-column: 1 / 2; }
+  .presence {
+    position: static; grid-column: 2 / 3; grid-row: 2 / 4;
+    transform: none !important; width: auto;
+    box-shadow: none;
+    border-left: 1px solid var(--hairline);
+    height: auto; padding-top: var(--r-5);
+  }
+  .presence[hidden] { display: block; visibility: visible; }
+  .presence-toggle { display: none; }
+}

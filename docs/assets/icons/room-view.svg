@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" width="56" height="56" role="img" aria-label="Room view window">
+  <defs>
+    <linearGradient id="t" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect width="56" height="56" rx="13" fill="url(#t)"/>
+  <g fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- GLYPH: browser window — frame, top bar with 3 dots, chat line in body -->
+    <rect x="14" y="16" width="28" height="24" rx="3.5"/>
+    <line x1="14" y1="24" x2="42" y2="24"/>
+    <circle cx="18.5" cy="20" r="1.2" fill="#ffffff" stroke="none"/>
+    <circle cx="22.5" cy="20" r="1.2" fill="#ffffff" stroke="none"/>
+    <circle cx="26.5" cy="20" r="1.2" fill="#ffffff" stroke="none"/>
+    <line x1="19" y1="32" x2="37" y2="32"/>
+  </g>
+</svg>

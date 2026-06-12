@@ -1,0 +1,10 @@
+# Copyright 2026 J3nna Technologies, LLC
+# SPDX-License-Identifier: Apache-2.0
+name: j3nna_mesh
+description: J3nna Mesh SDK for Dart — a peer that speaks the J3nna Integration Protocol (JIP).
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+dependencies:
+  cryptography: ^2.7.0

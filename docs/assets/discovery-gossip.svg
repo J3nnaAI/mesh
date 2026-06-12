@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 344" width="760" height="344"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto">
+      <path d="M0,0 L7.5,3 L0,6 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrS" markerWidth="9" markerHeight="9" refX="6.8" refY="2.7" orient="auto">
+      <path d="M0,0 L6.8,2.7 L0,5.4 Z" fill="#1e3a8a"/>
+    </marker>
+  </defs>
+
+  <!-- panel titles -->
+  <g text-anchor="middle" font-weight="700" fill="#1e3a8a" font-size="15">
+    <text x="200" y="28">Discovery</text>
+    <text x="570" y="28">Gossip / anti-entropy</text>
+  </g>
+
+  <!-- divider -->
+  <line x1="380" y1="44" x2="380" y2="262" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 5"/>
+
+  <!-- ================= DISCOVERY PANEL ================= -->
+  <!-- dashed beacon arrows from center peer out to LAN peers, via the multicast pill -->
+  <g stroke="#2563eb" stroke-width="2" stroke-dasharray="6 5" fill="none">
+    <line x1="200" y1="160" x2="200" y2="78"  marker-end="url(#arr)"/>
+    <line x1="170" y1="178" x2="78"  y2="222" marker-end="url(#arr)"/>
+    <line x1="230" y1="178" x2="322" y2="222" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- outer LAN peer boxes -->
+  <g font-size="14" font-weight="600" text-anchor="middle">
+    <rect x="158" y="48"  width="84" height="38" rx="9" fill="#2563eb"/>
+    <text x="200" y="72"  fill="#ffffff">peer</text>
+    <rect x="32"  y="222" width="84" height="38" rx="9" fill="#2563eb"/>
+    <text x="74"  y="246" fill="#ffffff">peer</text>
+    <rect x="284" y="222" width="84" height="38" rx="9" fill="#2563eb"/>
+    <text x="326" y="246" fill="#ffffff">peer</text>
+  </g>
+
+  <!-- multicast pill (center) -->
+  <g text-anchor="middle">
+    <rect x="118" y="148" width="164" height="26" rx="13" fill="#dbeafe"/>
+    <text x="200" y="166" fill="#1e3a8a" font-size="12.5" font-weight="600">multicast 239.42.42.42:9999</text>
+  </g>
+
+  <!-- discovery caption -->
+  <text x="200" y="288" text-anchor="middle" font-size="12.5" fill="#1e3a8a">announce a beacon &#8594; everyone on the LAN learns the peer</text>
+
+  <!-- ================= GOSSIP PANEL ================= -->
+  <!-- three peers in a triangle, solid bidirectional arrows between pairs -->
+  <g stroke="#1e3a8a" stroke-width="2" fill="none">
+    <line x1="488" y1="92"  x2="488" y2="222" marker-start="url(#arrS)" marker-end="url(#arrS)"/>
+    <line x1="512" y1="78"  x2="638" y2="170" marker-start="url(#arrS)" marker-end="url(#arrS)"/>
+    <line x1="508" y1="240" x2="640" y2="190" marker-start="url(#arrS)" marker-end="url(#arrS)"/>
+  </g>
+
+  <!-- gossip peer boxes -->
+  <g font-size="14" font-weight="600" text-anchor="middle">
+    <rect x="446" y="48"  width="84" height="38" rx="9" fill="#2563eb"/>
+    <text x="488" y="72"  fill="#ffffff">peer</text>
+    <rect x="446" y="226" width="84" height="38" rx="9" fill="#2563eb"/>
+    <text x="488" y="250" fill="#ffffff">peer</text>
+    <rect x="630" y="138" width="84" height="38" rx="9" fill="#2563eb"/>
+    <text x="672" y="162" fill="#ffffff">peer</text>
+  </g>
+
+  <!-- gossip pill -->
+  <g text-anchor="middle">
+    <rect x="486" y="142" width="160" height="26" rx="13" fill="#dbeafe"/>
+    <text x="566" y="160" fill="#1e3a8a" font-size="12.5" font-weight="600">digest &#8596; records</text>
+  </g>
+
+  <!-- gossip caption -->
+  <text x="566" y="288" text-anchor="middle" font-size="12.5" fill="#1e3a8a">gossip: digest &#8596; records (anti-entropy)</text>
+
+  <!-- ================= BOTTOM CAPTION ================= -->
+  <text x="380" y="322" text-anchor="middle" font-size="11.5" font-style="italic" fill="#475569">Discovery: zero-config UDP multicast beacons announce a peer to the LAN.</text>
+  <text x="380" y="338" text-anchor="middle" font-size="11.5" font-style="italic" fill="#475569">Gossip: peers swap signed presence records pairwise so every view converges &#8212; no registry server.</text>
+</svg>

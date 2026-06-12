@@ -1,0 +1,81 @@
+# J3nna Mesh — samples/joiner (DEMO reference agent).
+#
+# Mirrors the tested single-instance Docker topology (deploy/docker/compose.yaml, "demo" profile).
+# Verified on MicroK8s v1.35.3 (single instance per role); CI does not run a cluster, so validate against your own.
+# replicas:1 is intentional — single instance per role for this release (see ../../docs/DEPLOYMENT.md).
+#
+# DEMO ONLY. The joiner shows the full authorized loop: enroll -> approve -> discover the room
+# host via seed -> join -> post -> read. It is a reference, not a production component. Like every
+# peer it is a DISTINCT identity needing its own grant; it is a StatefulSet for the same reason.
+#
+# The joiner has NO HTTP server (no /healthz) — its only listener is the mesh port 8486; probes
+# use tcpSocket on 8486.
+---
+# Headless Service — stable mesh DNS name "joiner" used as the ADVERTISE address.
+apiVersion: v1
+kind: Service
+metadata:
+  name: joiner
+  namespace: j3nna-mesh
+  labels: { app.kubernetes.io/name: joiner, app.kubernetes.io/part-of: j3nna-mesh }
+spec:
+  clusterIP: None
+  selector: { app.kubernetes.io/name: joiner }
+  ports:
+    - { name: mesh, port: 8486, targetPort: 8486 }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: joiner
+  namespace: j3nna-mesh
+  labels: { app.kubernetes.io/name: joiner, app.kubernetes.io/part-of: j3nna-mesh }
+spec:
+  serviceName: joiner
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: joiner }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: joiner }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+      containers:
+        - name: joiner
+          # BUILD AND PUSH YOUR OWN — no published image is claimed. Build with:
+          #   docker build -f deploy/docker/Dockerfile --build-arg MODULE=samples/joiner \
+          #     -t ghcr.io/j3nnaai/mesh-joiner:0.1.0 . && docker push ghcr.io/j3nnaai/mesh-joiner:0.1.0
+          image: ghcr.io/j3nnaai/mesh-joiner:0.1.0   # placeholder ref — replace with your registry/tag
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: mesh, containerPort: 8486 }
+          env:
+            - { name: SAMPLE_CONSOLE, value: "http://console:8455" }
+            - { name: SAMPLE_LISTEN, value: "0.0.0.0:8486" }
+            - { name: SAMPLE_ADVERTISE, value: "http://joiner:8486" }           # Service DNS — NEVER 127.0.0.1
+            - { name: SAMPLE_DISCOVER, value: "false" }
+            - { name: SAMPLE_SEEDS, value: "http://room-agent:8482" }           # bootstrap off the room host
+            - { name: SAMPLE_ROOM, value: "lobby" }
+            - { name: SAMPLE_IDENTITY, value: "/data/sample.id" }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+          # The joiner self-enrolls and BLOCKS until approved; give a generous tcpSocket startupProbe.
+          startupProbe:
+            tcpSocket: { port: 8486 }
+            periodSeconds: 30
+            failureThreshold: 30      # ~15 min for enroll + approval
+          livenessProbe:
+            tcpSocket: { port: 8486 }
+            periodSeconds: 30
+            failureThreshold: 3
+  volumeClaimTemplates:
+    - metadata:
+        name: data            # /data — the persisted ed25519 identity (sample.id)
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 256Mi

@@ -1,0 +1,17 @@
+# Per-language build artifacts + fetched deps across the SDKs (the tests rebuild on each run).
+# NOTE: do not ignore bare bin/ — Dart keeps source in bin/. Only the .NET build output (bin/Debug, obj/).
+**/target/
+**/.build/
+**/.dart_tool/
+**/node_modules/
+**/bin/Debug/
+**/bin/Release/
+**/obj/
+**/*.class
+**/gson.jar
+**/Cargo.lock
+**/pubspec.lock
+**/Package.resolved
+**/__pycache__/
+**/*.pyc
+**/*.id

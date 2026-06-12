@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 440" width="760" height="440" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif" role="img" aria-label="J3nna Mesh trust model: peers enroll once with the console (root of trust) and fetch the root public key, then operate peer-to-peer on the hot path — exchanging signed presence over multicast and gossip, admitting each other by verifying grants OFFLINE against the root key, and calling tools over MCP with signed CallProofs. The console is never on the hot path.">
+  <rect x="0" y="0" width="760" height="440" fill="#ffffff"/>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <!-- Console (root of trust) -->
+  <rect x="230" y="16" width="300" height="56" rx="10" fill="#eef2ff" stroke="#c7d2fe" stroke-width="1.5"/>
+  <text x="250" y="41" font-size="14.5" font-weight="700" fill="#0f172a">CONSOLE <tspan font-size="12.5" font-weight="400" fill="#475569">— authority (root, not a hub)</tspan></text>
+  <text x="250" y="61" font-size="12.5" fill="#475569">ed25519 root key · enroll · grant · CRL</text>
+
+  <!-- enroll / CRL : straight angled arrows up to the console -->
+  <line x1="175" y1="150" x2="295" y2="73" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ar)"/>
+  <text x="26" y="106" font-size="11.5" fill="#64748b">(1) enroll once +</text>
+  <text x="26" y="122" font-size="11.5" fill="#64748b">fetch root pubkey</text>
+  <line x1="585" y1="150" x2="465" y2="73" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ar)"/>
+  <text x="600" y="106" font-size="11.5" fill="#64748b">(4) CRL refresh</text>
+  <text x="600" y="122" font-size="11.5" fill="#64748b">on an interval (~30s)</text>
+
+  <!-- Peers -->
+  <rect x="50" y="150" width="250" height="56" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="70" y="175" font-size="14.5" font-weight="700" fill="#0f172a">PEER A <tspan font-size="12.5" font-weight="400" fill="#475569">(e.g. joiner)</tspan></text>
+  <text x="70" y="195" font-size="12.5" fill="#475569">identity + grant + root</text>
+  <rect x="460" y="150" width="250" height="56" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="480" y="175" font-size="14.5" font-weight="700" fill="#0f172a">PEER B <tspan font-size="12.5" font-weight="400" fill="#475569">(e.g. room-agent)</tspan></text>
+  <text x="480" y="195" font-size="12.5" fill="#475569">identity + grant + root</text>
+
+  <!-- peer-to-peer link feeding the hot-path box -->
+  <line x1="300" y1="178" x2="460" y2="178" stroke="#94a3b8" stroke-width="1.6" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <line x1="380" y1="178" x2="380" y2="242" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ar)"/>
+
+  <!-- Hot path -->
+  <rect x="50" y="242" width="660" height="178" rx="12" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="70" y="270" font-size="12.5" font-weight="700" fill="#166534">HOT PATH — peer to peer only · the console is never called here</text>
+  <text x="70" y="306" font-size="12" font-weight="600" fill="#1e293b">(2) signed presence carrying the grant — multicast 239.42.42.42:9999 + gossip (POST /gossip)</text>
+  <text x="70" y="338" font-size="12" font-weight="600" fill="#1e293b">(3) admit gate verifies the grant OFFLINE against the root pubkey — no console call</text>
+  <text x="70" y="370" font-size="12" font-weight="600" fill="#1e293b">tools/call + room.* over /mcp <tspan font-weight="400" fill="#475569">(restricted ⇒ signed CallProof)</tspan></text>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 560" width="760" height="560" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif" role="img" aria-label="J3nna Mesh layered architecture: the control plane signs grants for agents, which build on the agentkit peer SDK, which depends only on the jip protocol core; vault and kernel are optional sidecars.">
+  <rect x="0" y="0" width="760" height="560" fill="#ffffff"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <!-- Control plane -->
+  <rect x="120" y="20" width="520" height="66" rx="10" fill="#eef2ff" stroke="#c7d2fe" stroke-width="1.5"/>
+  <text x="140" y="46" font-size="15" font-weight="700" fill="#0f172a">CONTROL PLANE <tspan font-size="11" font-style="italic" font-weight="400" fill="#64748b">— root of trust, off the hot path</tspan></text>
+  <text x="140" y="68" font-size="12.5" fill="#475569">console — enroll · approve · grant · revoke · CRL</text>
+
+  <line x1="380" y1="86" x2="380" y2="122" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="392" y="108" font-size="11" fill="#64748b">signs grants / CRL (verified offline by peers)</text>
+
+  <!-- Agents / roles -->
+  <rect x="120" y="124" width="520" height="72" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="140" y="150" font-size="15" font-weight="700" fill="#0f172a">AGENTS / ROLES <tspan font-size="11" font-style="italic" font-weight="400" fill="#64748b">— ordinary authorized peers</tspan></text>
+  <text x="140" y="170" font-size="12.5" fill="#475569">room-agent · room-view · signal-bridge · samples/joiner</text>
+  <text x="140" y="187" font-size="12.5" fill="#475569">…and YOUR agents, built with agentkit</text>
+
+  <line x1="380" y1="196" x2="380" y2="230" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="392" y="216" font-size="11" fill="#64748b">build on</text>
+
+  <!-- Peer SDK -->
+  <rect x="120" y="232" width="520" height="58" rx="10" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.5"/>
+  <text x="140" y="258" font-size="15" font-weight="700" fill="#0f172a">PEER SDK · agentkit</text>
+  <text x="140" y="278" font-size="12.5" fill="#475569">open · discover · call · room · enroll</text>
+
+  <line x1="380" y1="290" x2="380" y2="324" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="392" y="310" font-size="11" fill="#64748b">depends only on</text>
+
+  <!-- Protocol core -->
+  <rect x="120" y="326" width="520" height="66" rx="10" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+  <text x="140" y="352" font-size="15" font-weight="700" fill="#f8fafc">PROTOCOL CORE · jip</text>
+  <text x="140" y="374" font-size="12.5" fill="#cbd5e1">identity · presence · discovery · MCP · grants · CRL — pure stdlib, zero internal deps</text>
+
+  <!-- Sidecars -->
+  <text x="120" y="430" font-size="11" font-style="italic" fill="#64748b">SIDECARS (optional — used by agents, not by the mesh core):</text>
+  <rect x="120" y="442" width="250" height="56" rx="10" fill="#fffbeb" stroke="#fde68a" stroke-width="1.5"/>
+  <text x="140" y="468" font-size="14" font-weight="700" fill="#0f172a">vault</text>
+  <text x="140" y="487" font-size="12.5" fill="#475569">encrypted secrets</text>
+  <rect x="390" y="442" width="250" height="56" rx="10" fill="#fffbeb" stroke="#fde68a" stroke-width="1.5"/>
+  <text x="410" y="468" font-size="14" font-weight="700" fill="#0f172a">kernel</text>
+  <text x="410" y="487" font-size="12.5" fill="#475569">memory / knowledge graph</text>
+</svg>

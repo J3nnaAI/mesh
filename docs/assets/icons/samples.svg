@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" width="56" height="56" role="img" aria-label="Samples start here">
+  <defs>
+    <linearGradient id="t" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect width="56" height="56" rx="13" fill="url(#t)"/>
+  <g fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- GLYPH: play triangle inside a circle -->
+    <circle cx="28" cy="28" r="13"/>
+    <path d="M24 22 L35 28 L24 34 Z" fill="#ffffff"/>
+  </g>
+</svg>

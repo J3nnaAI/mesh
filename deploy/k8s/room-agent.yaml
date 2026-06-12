@@ -1,0 +1,90 @@
+# J3nna Mesh — room-agent (decentralized room host).
+#
+# Mirrors the tested single-instance Docker topology (deploy/docker/compose.yaml).
+# Verified on MicroK8s v1.35.3 (single instance per role); CI does not run a cluster, so validate against your own.
+# replicas:1 is intentional — single instance per role for this release (see ../../docs/DEPLOYMENT.md).
+#
+# A room is addressed by THIS host's node identity. Running a second room-agent does NOT
+# replicate the room — it creates DIFFERENT rooms (shard by room, not replicate). The
+# identity is a persisted ed25519 keypair on the PVC, so each replica would be a DISTINCT
+# peer needing its own grant. Hence StatefulSet + per-pod PVC, never Deployment+ClusterIP.
+#
+# room-agent is the SEED TARGET: other peers bootstrap off it via SEEDS. It itself takes no
+# seeds (matching compose.yaml). It runs DISCOVER=false (no multicast across pods/nodes) and
+# is found by the others purely via gossip seeding to its ADVERTISE name.
+#
+# room-agent has NO HTTP server (no /healthz) — its only listener is the mesh port 8482.
+# Probes therefore use tcpSocket on 8482 (a successful TCP accept == the mesh listener is up).
+---
+# Headless Service — gives the pod its stable, routable DNS name "room-agent" used as the
+# mesh ADVERTISE address and as the SEEDS target for every other peer.
+apiVersion: v1
+kind: Service
+metadata:
+  name: room-agent
+  namespace: j3nna-mesh
+  labels: { app.kubernetes.io/name: room-agent, app.kubernetes.io/part-of: j3nna-mesh }
+spec:
+  clusterIP: None
+  selector: { app.kubernetes.io/name: room-agent }
+  ports:
+    - { name: mesh, port: 8482, targetPort: 8482 }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: room-agent
+  namespace: j3nna-mesh
+  labels: { app.kubernetes.io/name: room-agent, app.kubernetes.io/part-of: j3nna-mesh }
+spec:
+  serviceName: room-agent
+  replicas: 1            # one instance == one room host; more instances == DISTINCT rooms (see docs)
+  selector:
+    matchLabels: { app.kubernetes.io/name: room-agent }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: room-agent }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+      containers:
+        - name: room-agent
+          # BUILD AND PUSH YOUR OWN — no published image is claimed. Build with:
+          #   docker build -f deploy/docker/Dockerfile --build-arg MODULE=room-agent \
+          #     -t ghcr.io/j3nnaai/mesh-room-agent:0.1.0 . && docker push ghcr.io/j3nnaai/mesh-room-agent:0.1.0
+          image: ghcr.io/j3nnaai/mesh-room-agent:0.1.0   # placeholder ref — replace with your registry/tag
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: mesh, containerPort: 8482 }
+          env:
+            - { name: ROOM_AGENT_CONSOLE, value: "http://console:8455" }
+            - { name: ROOM_AGENT_LISTEN, value: "0.0.0.0:8482" }
+            - { name: ROOM_AGENT_ADVERTISE, value: "http://room-agent:8482" }   # Service DNS — NEVER 127.0.0.1
+            - { name: ROOM_AGENT_DISCOVER, value: "false" }                     # no multicast across pods
+            # No ROOM_AGENT_SEEDS: room-agent is the seed target; it bootstraps no one (matches compose).
+            - { name: ROOM_AGENT_ROOM, value: "lobby" }
+            - { name: ROOM_AGENT_IDENTITY, value: "/data/room-agent.id" }       # persist identity on the PVC
+          volumeMounts:
+            - { name: data, mountPath: /data }
+          # room-agent self-enrolls and BLOCKS until an operator approves in the console. A liveness
+          # probe on the not-yet-enrolled path would crash-loop the pod before approval is possible.
+          # Use a GENEROUS tcpSocket startupProbe that gates liveness: liveness does not run until
+          # startup succeeds. 30s × 30 = ~15 min window for manual approval; tune to your operations.
+          startupProbe:
+            tcpSocket: { port: 8482 }
+            periodSeconds: 30
+            failureThreshold: 30      # ~15 min to enroll + get approved before the pod is failed
+          livenessProbe:
+            tcpSocket: { port: 8482 }
+            periodSeconds: 30
+            failureThreshold: 3
+  volumeClaimTemplates:
+    - metadata:
+        name: data            # /data — the persisted ed25519 identity (room-agent.id)
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 256Mi

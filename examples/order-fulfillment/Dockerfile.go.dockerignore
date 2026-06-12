@@ -1,0 +1,21 @@
+# Allowlist for the flat published layout (context = repo root): ignore all, re-include only what the Go build needs.
+*
+!jip
+jip/conformance
+!agentkit
+!kernel
+!vault
+!console
+!room-agent
+!monitor
+!examples
+examples/*
+!examples/order-fulfillment
+examples/order-fulfillment/*
+!examples/order-fulfillment/kernel-service
+!examples/order-fulfillment/vault-service
+!examples/order-fulfillment/inventory.jsonl
+**/.git
+**/*.id
+examples/order-fulfillment/kernel-service/kernel-service
+examples/order-fulfillment/vault-service/vault-service

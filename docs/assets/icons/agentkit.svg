@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" width="56" height="56" role="img" aria-label="AgentKit SDK">
+  <defs>
+    <linearGradient id="t" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect width="56" height="56" rx="13" fill="url(#t)"/>
+  <g fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- GLYPH: code "</>" — left bracket, slash, right bracket -->
+    <polyline points="20,20 13,28 20,36"/>
+    <polyline points="36,20 43,28 36,36"/>
+    <line x1="31" y1="17" x2="25" y2="39"/>
+  </g>
+</svg>

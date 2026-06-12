@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>J3nnaMesh</AssemblyName>
+    <RootNamespace>J3nnaMesh</RootNamespace>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0" />
+  </ItemGroup>
+  <!-- The library compiles only its own root *.cs; the joiner/ and conformance/ projects own theirs. -->
+  <ItemGroup>
+    <Compile Remove="joiner/**/*.cs" />
+    <Compile Remove="conformance/**/*.cs" />
+  </ItemGroup>
+</Project>

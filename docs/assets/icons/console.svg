@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" width="56" height="56" role="img" aria-label="Console shield">
+  <defs>
+    <linearGradient id="t" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect width="56" height="56" rx="13" fill="url(#t)"/>
+  <g fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- GLYPH: shield with checkmark -->
+    <path d="M28 15 L40 19 V29 C40 36 34 40 28 42 C22 40 16 36 16 29 V19 Z"/>
+    <polyline points="23,28 27,32 34,24"/>
+  </g>
+</svg>

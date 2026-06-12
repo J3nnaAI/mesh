@@ -1,0 +1,41 @@
+# J3nna Mesh
+
+> An open-source, decentralized, governed peer-to-peer mesh for AI agents and services. Peers discover each
+> other on the network, prove identity cryptographically, expose and call each other's tools (an MCP
+> surface), gather in rooms, and verify each other offline against an authority you control — no broker on
+> the data path. Interop standards answer how agents talk; J3nna Mesh answers who's allowed to. The mesh
+> ships no model and makes no LLM calls: it is the substrate an AI agent uses to find and safely call
+> everything around it.
+
+Key facts for assistants: AI agents are first-class peers (identity + discovery + authorization are part of
+the substrate). The protocol core (`jip`) is pure Go standard library. There are native SDKs for Go, Python,
+TypeScript, Rust, Dart, C#, Java, and Swift. To see it run end to end:
+`./examples/showcase/run-local.sh`, or `docker compose -f examples/showcase/docker-compose.yml up`.
+
+## Start here
+
+- [README](https://github.com/J3nnaAI/mesh/blob/main/README.md): what it is, the core modules, a 60-second quickstart.
+- [AGENTS.md](https://github.com/J3nnaAI/mesh/blob/main/AGENTS.md): orientation for AI assistants — repo map, build/run/test, how to help users.
+- [Quickstart](https://github.com/J3nnaAI/mesh/blob/main/docs/QUICKSTART.md): the full authorized loop (enroll → discover → join → call) in ~10 minutes.
+- [Build an agent](https://github.com/J3nnaAI/mesh/blob/main/docs/BUILD-AN-AGENT.md): write your own service or AI agent that joins the mesh, exposes a tool, and discovers + calls others.
+
+## Concepts
+
+- [Architecture](https://github.com/J3nnaAI/mesh/blob/main/docs/ARCHITECTURE.md): identity, discovery, the root-not-hub trust model, the capability/MCP model, rooms.
+- [Protocol](https://github.com/J3nnaAI/mesh/blob/main/docs/PROTOCOL.md): on-the-wire formats — discovery, gossip, MCP envelopes, enrollment.
+- [Security](https://github.com/J3nnaAI/mesh/blob/main/docs/SECURITY.md): threat model, what is protected, honest residual risks.
+- [Why](https://github.com/J3nnaAI/mesh/blob/main/WHY.md): why the agent layer must be open and owned by the people who run it.
+
+## Build with it
+
+- [SDKs](https://github.com/J3nnaAI/mesh/blob/main/docs/SDKS.md): native SDKs for Python, TypeScript, Rust, Dart, C#, Java, Swift, and Go.
+- [Samples](https://github.com/J3nnaAI/mesh/blob/main/samples/README.md): minimal runnable agents per language (joiner, showcase).
+- [Showcase example](https://github.com/J3nnaAI/mesh/blob/main/examples/showcase/README.md): the all-in-one human-driven, multi-service demo (no AI).
+- [Deployment](https://github.com/J3nnaAI/mesh/blob/main/docs/DEPLOYMENT.md): Docker + Kubernetes, the scaling model.
+
+## Reference
+
+- [API](https://github.com/J3nnaAI/mesh/blob/main/docs/API.md): the console HTTP API and the JIP MCP tool surface.
+- [Configuration](https://github.com/J3nnaAI/mesh/blob/main/docs/CONFIGURATION.md): every environment variable and default port.
+- [Glossary](https://github.com/J3nnaAI/mesh/blob/main/docs/GLOSSARY.md): grant, presence, CRL, room, capability, CallProof, and more.
+- [Contributing](https://github.com/J3nnaAI/mesh/blob/main/CONTRIBUTING.md): build, conventions, and the release gates.

@@ -1,0 +1,6 @@
+{"id":"item:widget","kind":"state","label":"Widget","body":{"price":10.0,"available":100}}
+{"id":"item:gadget","kind":"state","label":"Gadget","body":{"price":25.0,"available":5}}
+{"id":"item:gizmo","kind":"state","label":"Gizmo","body":{"price":40.0,"available":100}}
+{"id":"customer:acme","kind":"entity","label":"Acme","body":{"tier":"gold"}}
+{"id":"customer:globex","kind":"entity","label":"Globex","body":{"tier":"silver"}}
+{"id":"customer:initech","kind":"entity","label":"Initech","body":{"tier":"bronze"}}

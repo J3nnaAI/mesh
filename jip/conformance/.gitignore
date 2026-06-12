@@ -1,0 +1,13 @@
+# Per-language build artifacts + fetched deps — the tests re-resolve/rebuild on each run.
+rust/target/
+rust/Cargo.lock
+dart/.dart_tool/
+dart/pubspec.lock
+dart/.packages
+csharp/bin/
+csharp/obj/
+java/*.class
+java/gson.jar
+swift/.build/
+swift/Package.resolved
+**/node_modules/

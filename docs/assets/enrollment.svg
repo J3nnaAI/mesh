@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320" width="800" height="320"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ab" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto">
+      <path d="M0,0 L7.5,3 L0,6 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="ai" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto">
+      <path d="M0,0 L7.5,3 L0,6 Z" fill="#4f46e5"/>
+    </marker>
+    <marker id="ag" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto">
+      <path d="M0,0 L7.5,3 L0,6 Z" fill="#64748b"/>
+    </marker>
+    <marker id="av" markerWidth="11" markerHeight="11" refX="8" refY="3.2" orient="auto">
+      <path d="M0,0 L8,3.2 L0,6.4 Z" fill="#16a34a"/>
+    </marker>
+  </defs>
+
+  <!-- ===== raised authority tier: console + operator (top-center) ===== -->
+  <!-- console (the authority) -->
+  <rect x="318" y="40" width="164" height="54" rx="11" fill="#4f46e5"/>
+  <text x="400" y="63" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">console</text>
+  <text x="400" y="82" text-anchor="middle" font-size="11.5" fill="#e0e7ff">the authority (root)</text>
+
+  <!-- operator (human, neutral gray) -->
+  <rect x="560" y="44" width="150" height="46" rx="11" fill="#64748b"/>
+  <text x="635" y="66" text-anchor="middle" font-size="14.5" font-weight="600" fill="#ffffff">operator</text>
+  <text x="635" y="82" text-anchor="middle" font-size="11" fill="#e2e8f0">(human, out-of-band)</text>
+
+  <!-- ===== bottom tier: agent (left) and peers (right), both #2563eb ===== -->
+  <rect x="40"  y="196" width="128" height="54" rx="11" fill="#2563eb"/>
+  <text x="104" y="228" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">agent</text>
+
+  <rect x="632" y="196" width="128" height="54" rx="11" fill="#2563eb"/>
+  <text x="696" y="228" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">peers</text>
+
+  <!-- ===== Step 1: AGENT -> CONSOLE  (POST /enroll) ===== -->
+  <path d="M150,198 C210,150 268,110 322,86" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ab)"/>
+
+  <!-- ===== Step 2: OPERATOR -> CONSOLE  (approve, OOB) ===== -->
+  <line x1="556" y1="73" x2="490" y2="71" stroke="#64748b" stroke-width="2" marker-end="url(#ag)"/>
+
+  <!-- ===== Step 3: CONSOLE -> AGENT  (signed grant; agent polls) ===== -->
+  <path d="M340,96 C286,140 214,176 164,202" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#ai)"/>
+
+  <!-- ===== Step 4: AGENT -> PEERS  (verify OFFLINE; passes BELOW the console) ===== -->
+  <line x1="168" y1="232" x2="626" y2="232" stroke="#16a34a" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#av)"/>
+
+  <!-- ===== numbered pill labels ===== -->
+  <g font-size="12.5" text-anchor="middle">
+    <!-- 1 -->
+    <g>
+      <rect x="158" y="120" width="172" height="22" rx="11" fill="#dbeafe"/>
+      <text x="244" y="135" fill="#1e3a8a"><tspan font-weight="700">1</tspan>  POST /enroll (name, pubkey)</text>
+    </g>
+    <!-- 2 -->
+    <g>
+      <rect x="468" y="108" width="206" height="22" rx="11" fill="#dbeafe"/>
+      <text x="571" y="123" fill="#1e3a8a"><tspan font-weight="700">2</tspan>  POST /enroll/&lt;id&gt;/approve (OOB)</text>
+    </g>
+    <!-- 3 -->
+    <g>
+      <rect x="222" y="156" width="156" height="22" rx="11" fill="#e0e7ff"/>
+      <text x="300" y="171" fill="#3730a3"><tspan font-weight="700">3</tspan>  signed grant (polled)</text>
+    </g>
+    <!-- 4 (distinct: green, "offline") -->
+    <g>
+      <rect x="312" y="208" width="176" height="24" rx="12" fill="#dcfce7"/>
+      <text x="400" y="224" fill="#166534"><tspan font-weight="700">4</tspan>  present grant — verify OFFLINE</text>
+    </g>
+  </g>
+
+  <!-- note: step 4 clears the raised console (root, not hub) -->
+  <text x="400" y="256" text-anchor="middle" font-size="11" font-style="italic" fill="#16a34a">the console is off this path</text>
+
+  <!-- ===== caption ===== -->
+  <text x="400" y="288" text-anchor="middle" font-size="11.5" font-style="italic" fill="#475569">Enrollment: the agent asks the console to join; the operator approves out-of-band; the console issues a short-lived signed grant.</text>
+  <text x="400" y="305" text-anchor="middle" font-size="11.5" font-style="italic" fill="#475569">The agent then runs on that grant and peers verify it offline &#8212; the console is off the data path.</text>
+</svg>

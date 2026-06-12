@@ -1,0 +1,4 @@
+# Build artifacts + fetched deps + generated identities — the build re-resolves/rebuilds on each run.
+*.class
+gson.jar
+*.id

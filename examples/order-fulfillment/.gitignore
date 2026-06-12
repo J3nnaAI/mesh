@@ -1,0 +1,7 @@
+# build artifacts + runtime state (rebuilt each run)
+kernel-service/ksvc
+vault-service/vsvc
+**/*.enc
+**/*.id
+**/__pycache__/
+**/*.pyc

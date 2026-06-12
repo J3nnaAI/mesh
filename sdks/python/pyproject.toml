@@ -1,0 +1,14 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "j3nna-mesh"
+version = "0.1.0"
+description = "J3nna Mesh SDK for Python — a JIP protocol peer (identity, enrollment, discovery, MCP, rooms)"
+requires-python = ">=3.9"
+license = "Apache-2.0"
+dependencies = ["cryptography>=41"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/j3nna_mesh"]

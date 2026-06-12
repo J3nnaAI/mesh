@@ -1,0 +1,4 @@
+# Rust build artifacts + fetched deps — rebuilt on each run.
+/target/
+# Per-peer identity files written by the example joiner (private keys — never commit).
+*.id

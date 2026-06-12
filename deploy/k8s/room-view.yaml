@@ -1,0 +1,104 @@
+# J3nna Mesh — room-view (human chat front door).
+#
+# Mirrors the tested single-instance Docker topology (deploy/docker/compose.yaml).
+# Verified on MicroK8s v1.35.3 (single instance per role); CI does not run a cluster, so validate against your own.
+# replicas:1 is intentional — single instance per role for this release (see ../../docs/DEPLOYMENT.md).
+#
+# room-view is ONE peer per human session. "Scale" here means MORE instances, each a DISTINCT
+# peer with its own identity + its own grant — not N replicas of one identity. The identity is a
+# persisted ed25519 keypair on the PVC. Hence StatefulSet + per-pod PVC. To run a second human
+# session, copy this manifest with a new name (distinct identity, distinct Service DNS, distinct grant).
+#
+# Two listeners:
+#   - mesh peer port 8485 (ROOMVIEW_LISTEN / ROOMVIEW_ADVERTISE) — has NO /healthz.
+#   - chat-UI HTTP port 8487 (ROOMVIEW_HTTP) — serves /healthz, the web UI, and /api/*.
+# Probes target /healthz on 8487, NOT the mesh port.
+#
+# HONESTY: the chat UI on 8487 is UNAUTHENTICATED. Put it behind an Ingress with authentication
+# (and TLS) before exposing it beyond the cluster. See DEPLOYMENT.md.
+---
+# Headless Service — stable mesh DNS name "room-view" used as the ADVERTISE address.
+apiVersion: v1
+kind: Service
+metadata:
+  name: room-view
+  namespace: j3nna-mesh
+  labels: { app.kubernetes.io/name: room-view, app.kubernetes.io/part-of: j3nna-mesh }
+spec:
+  clusterIP: None
+  selector: { app.kubernetes.io/name: room-view }
+  ports:
+    - { name: mesh, port: 8485, targetPort: 8485 }
+---
+# Chat-UI Service — the routable name for the human web UI: 8487. Front this with an
+# authenticating Ingress before public exposure (the UI itself has no auth).
+apiVersion: v1
+kind: Service
+metadata:
+  name: room-view-ui
+  namespace: j3nna-mesh
+  labels: { app.kubernetes.io/name: room-view, app.kubernetes.io/part-of: j3nna-mesh }
+spec:
+  selector: { app.kubernetes.io/name: room-view }
+  ports:
+    - { name: ui, port: 8487, targetPort: 8487 }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: room-view
+  namespace: j3nna-mesh
+  labels: { app.kubernetes.io/name: room-view, app.kubernetes.io/part-of: j3nna-mesh }
+spec:
+  serviceName: room-view
+  replicas: 1            # one human session per instance; more sessions == more DISTINCT peers (see docs)
+  selector:
+    matchLabels: { app.kubernetes.io/name: room-view }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: room-view }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+      containers:
+        - name: room-view
+          # BUILD AND PUSH YOUR OWN — no published image is claimed. Build with:
+          #   docker build -f deploy/docker/Dockerfile --build-arg MODULE=room-view \
+          #     -t ghcr.io/j3nnaai/mesh-room-view:0.1.0 . && docker push ghcr.io/j3nnaai/mesh-room-view:0.1.0
+          image: ghcr.io/j3nnaai/mesh-room-view:0.1.0   # placeholder ref — replace with your registry/tag
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: mesh, containerPort: 8485 }
+            - { name: ui, containerPort: 8487 }
+          env:
+            - { name: ROOMVIEW_CONSOLE, value: "http://console:8455" }
+            - { name: ROOMVIEW_LISTEN, value: "0.0.0.0:8485" }
+            - { name: ROOMVIEW_ADVERTISE, value: "http://room-view:8485" }      # Service DNS — NEVER 127.0.0.1
+            - { name: ROOMVIEW_HTTP, value: "0.0.0.0:8487" }
+            - { name: ROOMVIEW_DISCOVER, value: "false" }
+            - { name: ROOMVIEW_SEEDS, value: "http://room-agent:8482" }         # bootstrap off the room host
+            - { name: ROOMVIEW_NAME, value: "guest" }
+            - { name: ROOMVIEW_ROOM, value: "lobby" }
+            - { name: ROOMVIEW_IDENTITY, value: "/data/room-view.id" }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+          # room-view self-enrolls and BLOCKS until approved. The UI server (8487, with /healthz)
+          # comes up immediately; size the startupProbe to cover manual approval. It gates liveness.
+          startupProbe:
+            httpGet: { path: /healthz, port: 8487 }
+            periodSeconds: 30
+            failureThreshold: 30      # ~15 min for enroll + approval
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8487 }
+            periodSeconds: 20
+            failureThreshold: 3
+  volumeClaimTemplates:
+    - metadata:
+        name: data            # /data — the persisted ed25519 identity (room-view.id)
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 256Mi

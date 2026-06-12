@@ -1,0 +1,62 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "27 3 * * 1"   # weekly, Mondays 03:27 UTC
+
+jobs:
+  analyze:
+    name: Analyze (Go)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # Install the pinned Go so the toolchain never re-execs mid-trace. cache: false so the build actually
+      # compiles (a restored build cache makes `go build` a no-op → CodeQL sees no source).
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: jip/go.mod
+          cache: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: go
+          build-mode: manual
+          config-file: ./.github/codeql/codeql-config.yml
+
+      # Go needs a real, TRACED build. This repo is a multi-module go.work workspace, so build each module.
+      # Crucially, invoke CodeQL's tracing wrapper ($CODEQL_ACTION_GO_BINARY) directly — if a plain `go` from
+      # setup-go shadows it on PATH, the build compiles but isn't traced ("no source code seen during build").
+      - name: Build the Go modules (traced by CodeQL)
+        shell: bash
+        env:
+          GOTOOLCHAIN: auto
+        run: |
+          GO="${CODEQL_ACTION_GO_BINARY:-go}"
+          echo "tracing go binary: $GO"; "$GO" version
+          "$GO" clean -cache   # force a from-scratch compile so every package is traced
+          for m in jip agentkit kernel vault console room-agent room-view signal-bridge monitor samples/joiner; do
+            echo "::group::go build $m"; ( cd "$m" && "$GO" build ./... ); echo "::endgroup::"
+          done
+          # the example services are separate modules outside the workspace — build with their own replaces
+          for s in examples/order-fulfillment/kernel-service examples/order-fulfillment/vault-service; do
+            echo "::group::go build $s"; ( cd "$s" && GOWORK=off "$GO" build . ); echo "::endgroup::"
+          done
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:go"

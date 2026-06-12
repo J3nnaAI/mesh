@@ -1,0 +1,35 @@
+version: 2
+updates:
+  # Go modules across the multi-module workspace
+  - package-ecosystem: gomod
+    directories:
+      - /jip
+      - /agentkit
+      - /kernel
+      - /vault
+      - /console
+      - /room-agent
+      - /room-view
+      - /signal-bridge
+      - /samples/joiner
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+    groups:
+      go:
+        patterns: ["*"]
+
+  # Keep the GitHub Actions in CI current (actions/checkout, setup-go, codeql-action…)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "ci"
+    groups:
+      actions:
+        patterns: ["*"]

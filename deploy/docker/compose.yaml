@@ -1,0 +1,113 @@
+# J3nna Mesh — local multi-container topology (Docker Compose).
+#
+# This mirrors the single-instance-per-role topology that is verified end-to-end (enroll → approve →
+# seed-discovery → join → post across containers). It deliberately runs ONE of each role: a mesh peer is a
+# cryptographically-pinned identity, not a stateless worker, so "scaling" means MORE DISTINCT PEERS, not
+# replicas of one identity behind a load balancer. See ../../docs/DEPLOYMENT.md for the deployment model.
+#
+# Discovery uses gossip SEEDS, not multicast (DISCOVER=false) — the portable path that also works in
+# Kubernetes, where multicast does not cross pods/nodes. Every ADVERTISE is the service DNS name (NOT
+# 127.0.0.1), or peers learn an address they can never dial.
+#
+# Bring it up, then approve the enrollments (each agent blocks until approved):
+#   docker compose -f deploy/docker/compose.yaml up --build -d
+#   # approve every pending enrollment using the seeded operator token:
+#   for id in $(curl -s -H 'Authorization: Bearer change-me-operator-token' localhost:8455/enroll/pending \
+#                | grep -o '"id":"[a-f0-9]*"' | cut -d'"' -f4); do : ; done   # (see DEPLOYMENT.md for the loop)
+# The console UI is at http://localhost:8455/ ; the human chat UI at http://localhost:8487/.
+
+name: j3nna-mesh
+
+networks:
+  mesh:
+    driver: bridge
+
+volumes:
+  console-state:        # console: authority root key + vault + CRL (so the root is stable across restarts)
+  signal-state:         # signal-bridge: encrypted webhook-subscription vault + identity
+  room-agent-state:     # room-agent: persisted ed25519 identity (stable node id → grant survives restart)
+  room-view-state:      # room-view: persisted ed25519 identity
+
+services:
+  # The authority / control plane — the ROOT of trust, never on the hot path. SINGLE active instance:
+  # its state (root key, CRL, users, enrollment) is single-writer. CONSOLE_ROOT_KEY_REQUIRED would
+  # fail-closed if the key were missing; here we persist it on a volume so first run generates it and
+  # restarts reuse it.
+  console:
+    build: { context: ../.., dockerfile: deploy/docker/Dockerfile, args: { MODULE: console } }
+    networks: [mesh]
+    ports: ["8455:8455"]            # console UI + API on the host
+    environment:
+      CONSOLE_ADDR: "0.0.0.0:8455"
+      CONSOLE_VAULT: "/data/console-vault.enc"
+      CONSOLE_ROOT_KEY: "/data/console-root.key"
+      CONSOLE_CRL: "/data/console-crl.json"
+      CONSOLE_VAULT_PASSPHRASE: "change-me-vault-passphrase"   # use a Docker/K8s secret in production
+      CONSOLE_USERS: "change-me-operator-token=operator"        # bootstrap operator bearer token for approvals
+    volumes: ["console-state:/data"]
+
+  # Decentralized room host. Rooms are addressed by THIS host's identity — running another room-agent
+  # creates DIFFERENT rooms (shard by room), it does not replicate one room. First peer → no seeds.
+  room-agent:
+    build: { context: ../.., dockerfile: deploy/docker/Dockerfile, args: { MODULE: room-agent } }
+    networks: [mesh]
+    depends_on: [console]
+    environment:
+      ROOM_AGENT_CONSOLE: "http://console:8455"
+      ROOM_AGENT_LISTEN: "0.0.0.0:8482"
+      ROOM_AGENT_ADVERTISE: "http://room-agent:8482"   # service DNS — never 127.0.0.1
+      ROOM_AGENT_DISCOVER: "false"                      # no multicast; peers reach us via seeds
+      ROOM_AGENT_ROOM: "lobby"
+      ROOM_AGENT_IDENTITY: "/data/room-agent.id"        # persist identity so the node id is stable
+    volumes: ["room-agent-state:/data"]
+
+  # Events + webhooks bridge. In-memory event log is per-instance (not replicated) — one active instance.
+  signal-bridge:
+    build: { context: ../.., dockerfile: deploy/docker/Dockerfile, args: { MODULE: signal-bridge } }
+    networks: [mesh]
+    depends_on: [console, room-agent]
+    environment:
+      SIGNAL_CONSOLE: "http://console:8455"
+      SIGNAL_LISTEN: "0.0.0.0:8483"
+      SIGNAL_ADVERTISE: "http://signal-bridge:8483"
+      SIGNAL_HTTP: "0.0.0.0:8484"
+      SIGNAL_DISCOVER: "false"
+      SIGNAL_SEEDS: "http://room-agent:8482"            # bootstrap off the room host
+      SIGNAL_VAULT: "/data/signal-vault.enc"            # PVC-equivalent — subs + secrets survive restart
+      SIGNAL_IDENTITY: "/data/signal-bridge.id"
+      SIGNAL_VAULT_PASSPHRASE: "change-me-signal-passphrase"
+    volumes: ["signal-state:/data"]
+
+  # Human chat front door — one instance per human session, each its own peer. The web UI binds 0.0.0.0
+  # so it is reachable from the host.
+  room-view:
+    build: { context: ../.., dockerfile: deploy/docker/Dockerfile, args: { MODULE: room-view } }
+    networks: [mesh]
+    depends_on: [console, room-agent]
+    ports: ["8487:8487"]            # chat UI on the host
+    environment:
+      ROOMVIEW_CONSOLE: "http://console:8455"
+      ROOMVIEW_LISTEN: "0.0.0.0:8485"
+      ROOMVIEW_ADVERTISE: "http://room-view:8485"
+      ROOMVIEW_HTTP: "0.0.0.0:8487"
+      ROOMVIEW_DISCOVER: "false"
+      ROOMVIEW_SEEDS: "http://room-agent:8482"
+      ROOMVIEW_NAME: "guest"
+      ROOMVIEW_ROOM: "lobby"
+      ROOMVIEW_IDENTITY: "/data/room-view.id"           # persist identity so the node id is stable
+    volumes: ["room-view-state:/data"]
+
+  # Reference agent demonstrating the full authorized loop (enroll → discover via seed → join → post).
+  # Behind a profile so the core stack runs without it: `docker compose --profile demo up`.
+  joiner:
+    build: { context: ../.., dockerfile: deploy/docker/Dockerfile, args: { MODULE: samples/joiner } }
+    networks: [mesh]
+    profiles: [demo]
+    depends_on: [console, room-agent]
+    environment:
+      SAMPLE_CONSOLE: "http://console:8455"
+      SAMPLE_LISTEN: "0.0.0.0:8486"
+      SAMPLE_ADVERTISE: "http://joiner:8486"
+      SAMPLE_DISCOVER: "false"
+      SAMPLE_SEEDS: "http://room-agent:8482"
+      SAMPLE_ROOM: "lobby"

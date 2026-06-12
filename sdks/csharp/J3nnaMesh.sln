@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "J3nnaMesh", "J3nnaMesh.csproj", "{62367EEC-A6A3-455F-9FEA-779717F6681D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "joiner", "joiner\joiner.csproj", "{4FD6021E-C2C2-46BE-8248-B7CA2FDEB34F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "conformance", "conformance\conformance.csproj", "{F809C43A-312E-457B-8C17-B95E39915CA6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{62367EEC-A6A3-455F-9FEA-779717F6681D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62367EEC-A6A3-455F-9FEA-779717F6681D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62367EEC-A6A3-455F-9FEA-779717F6681D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62367EEC-A6A3-455F-9FEA-779717F6681D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FD6021E-C2C2-46BE-8248-B7CA2FDEB34F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FD6021E-C2C2-46BE-8248-B7CA2FDEB34F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FD6021E-C2C2-46BE-8248-B7CA2FDEB34F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FD6021E-C2C2-46BE-8248-B7CA2FDEB34F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F809C43A-312E-457B-8C17-B95E39915CA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F809C43A-312E-457B-8C17-B95E39915CA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F809C43A-312E-457B-8C17-B95E39915CA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F809C43A-312E-457B-8C17-B95E39915CA6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

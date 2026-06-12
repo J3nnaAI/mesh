@@ -1,0 +1,32 @@
+{
+  "name": "@j3nna/mesh",
+  "version": "0.1.0",
+  "description": "J3nna Mesh SDK for Node.js / TypeScript — a JIP protocol peer (identity, enrollment, discovery, MCP, rooms). No runtime dependencies; uses node:crypto for ed25519.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "index.mjs",
+  "exports": {
+    ".": "./index.mjs",
+    "./wire": "./wire.mjs",
+    "./identity": "./identity.mjs",
+    "./enroll": "./enroll.mjs",
+    "./discovery": "./discovery.mjs",
+    "./mcp": "./mcp.mjs",
+    "./rooms": "./rooms.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node test_conformance.mjs"
+  },
+  "files": [
+    "wire.mjs",
+    "identity.mjs",
+    "enroll.mjs",
+    "discovery.mjs",
+    "mcp.mjs",
+    "rooms.mjs",
+    "index.mjs"
+  ]
+}

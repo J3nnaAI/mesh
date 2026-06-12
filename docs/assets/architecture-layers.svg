@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 470" width="1200" height="470" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif" role="img" aria-label="J3nna Mesh, built in clean layers — every node is the same stack and each layer depends only on the one below. Agents (console, room-agent, signal-bridge, room-view, and your own) build on the agentkit peer SDK, which builds on the pure-stdlib jip protocol core (identity, signed presence, gossip and multicast discovery, MCP tools, rooms, grants, CRL, CallProof). Alongside sit two reusable libraries: the optional kernel memory and knowledge-graph engine, and the vault encrypted secret store whose secrets are used by handle and never returned.">
+  <defs>
+    <linearGradient id="l-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a0f1f"/><stop offset="1" stop-color="#0c1426"/></linearGradient>
+    <linearGradient id="l-accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#818cf8"/></linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="470" fill="url(#l-bg)"/>
+
+  <!-- ░ HEADER ░ -->
+  <text x="600" y="40" font-size="24" font-weight="800" fill="#f8fafc" text-anchor="middle" letter-spacing="-0.3">J3nna <tspan fill="url(#l-accent)">Mesh</tspan> <tspan font-weight="600" fill="#9fb0d0">&#8212; built in clean layers</tspan></text>
+  <text x="600" y="64" font-size="13.5" font-weight="500" fill="#7c8cab" text-anchor="middle">every node is the same stack; each layer depends only on the one below</text>
+
+  <!-- gutter -->
+  <g text-anchor="end" font-size="13" font-weight="700" fill="#5f6f9e">
+    <text x="214" y="126">agents</text>
+    <text x="214" y="190">SDK</text>
+    <text x="214" y="252">protocol</text>
+    <text x="214" y="320" fill="#5b9c90">optional</text>
+    <text x="214" y="376" fill="#9a8a4a">utility</text>
+  </g>
+  <!-- depends-on spine -->
+  <line x1="246" y1="100" x2="246" y2="272" stroke="#33415c" stroke-width="1.5"/>
+  <g fill="#5b6b8a" font-size="14" text-anchor="middle"><text x="246" y="156">&#8595;</text><text x="246" y="218">&#8595;</text></g>
+
+  <!-- agents -->
+  <rect x="268" y="100" width="824" height="52" rx="11" fill="#0e1c2e" stroke="#2b3d5a" stroke-width="1.4"/>
+  <text x="292" y="124" font-size="16" font-weight="700" fill="#cfe0f5">console <tspan fill="#5f7390">·</tspan> room-agent <tspan fill="#5f7390">·</tspan> signal-bridge <tspan fill="#5f7390">·</tspan> room-view</text>
+  <text x="292" y="143" font-size="12.5" fill="#7c8cab">ordinary authorized peers &#8212; <tspan fill="#9fb6d6">and your agents too</tspan></text>
+
+  <!-- agentkit -->
+  <rect x="268" y="160" width="824" height="52" rx="11" fill="#0e2233" stroke="#38bdf8" stroke-opacity="0.55" stroke-width="1.4"/>
+  <text x="292" y="184" font-size="16" font-weight="700" fill="#bae6fd">agentkit <tspan font-weight="400" fill="#6b8aa3">· the peer SDK</tspan></text>
+  <text x="292" y="203" font-size="12.5" fill="#6b8aa3">Open() a peer · discover · call peer tools · host rooms · enroll · refresh the CRL</text>
+
+  <!-- jip -->
+  <rect x="268" y="220" width="824" height="58" rx="11" fill="#101a30" stroke="url(#l-accent)" stroke-width="1.8"/>
+  <text x="292" y="245" font-size="16" font-weight="800" fill="#e8fdff">jip <tspan font-weight="400" fill="#8aa0bd">· the protocol core &#8212; pure stdlib, zero internal deps</tspan></text>
+  <text x="292" y="265" font-size="12.5" fill="#6b7f93">identity · signed presence · gossip + multicast discovery · MCP tools · rooms · grants · CRL · CallProof</text>
+
+  <!-- kernel (optional) -->
+  <rect x="268" y="292" width="824" height="48" rx="11" fill="#0c2420" stroke="#2dd4bf" stroke-opacity="0.55" stroke-width="1.4"/>
+  <circle cx="298" cy="316" r="7" fill="none" stroke="#5eead4" stroke-width="1.4"/><circle cx="298" cy="316" r="2" fill="#5eead4"/>
+  <text x="320" y="312" font-size="15" font-weight="700" fill="#99f6e4">kernel</text>
+  <text x="320" y="329" font-size="12" fill="#6f9c93">embeddable memory / knowledge-graph engine &#8212; agents recall &amp; remember, scope-isolated</text>
+
+  <!-- vault (utility) -->
+  <rect x="268" y="348" width="824" height="48" rx="11" fill="#1a1608" stroke="#eab308" stroke-opacity="0.5" stroke-width="1.4"/>
+  <rect x="291" y="362" width="16" height="12" rx="2.4" fill="none" stroke="#fde68a" stroke-width="1.4"/>
+  <path d="M293 362 a6 6 0 0 1 12 0" fill="none" stroke="#fde68a" stroke-width="1.3"/>
+  <text x="322" y="368" font-size="15" font-weight="700" fill="#fde68a">vault</text>
+  <text x="322" y="385" font-size="12" fill="#9a8a4a">encrypted secret store &#8212; secrets by handle, never returned (held by console &amp; signal-bridge)</text>
+
+  <text x="600" y="442" font-size="11.5" font-weight="600" fill="#3f4a63" text-anchor="middle" letter-spacing="0.5">DECENTRALIZED &#183; GOVERNED &#183; APACHE&#8201;2.0 &#183; PURE&#8209;STDLIB GO</text>
+</svg>

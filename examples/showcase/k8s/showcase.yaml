@@ -1,0 +1,309 @@
+# J3nna Mesh — the showcase on Kubernetes (demo-grade, verified-pattern).
+#
+# Mirrors the docker-compose topology: one StatefulSet per mesh peer (a peer is a pinned identity, not a
+# stateless replica), gossip-seed discovery (no multicast), Service DNS advertises. This is a DEMO posture
+# (root-key generated on first run, passphrases in env, an operator that auto-approves) — harden per
+# ../../../docs/DEPLOYMENT.md for production (Secret-mounted root key + CONSOLE_ROOT_KEY_REQUIRED=1, etc.).
+#
+# Build + import the image (microk8s example), then apply:
+#   docker build -f examples/showcase/Dockerfile.go -t mesh-showcase:dev .   # from the monorepo root
+#   docker save mesh-showcase:dev | microk8s ctr image import -
+#   kubectl apply -k examples/showcase/k8s/
+#   kubectl -n j3nna-showcase port-forward svc/room-view 8487:8487   # then open http://localhost:8487
+---
+apiVersion: v1
+kind: Namespace
+metadata: { name: j3nna-showcase }
+---
+########## console — the authority (demo bootstrap) ##########
+apiVersion: v1
+kind: Service
+metadata: { name: console, namespace: j3nna-showcase }
+spec:
+  selector: { app: console }
+  ports: [{ name: api, port: 8455, targetPort: 8455 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: console, namespace: j3nna-showcase }
+spec:
+  serviceName: console
+  replicas: 1
+  selector: { matchLabels: { app: console } }
+  template:
+    metadata: { labels: { app: console } }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532 }
+      containers:
+        - name: console
+          image: mesh-showcase:dev
+          imagePullPolicy: IfNotPresent
+          command: ["/app/console"]
+          ports: [{ containerPort: 8455 }]
+          env:
+            - { name: CONSOLE_ADDR, value: "0.0.0.0:8455" }
+            - { name: CONSOLE_VAULT, value: "/data/console-vault.enc" }
+            - { name: CONSOLE_ROOT_KEY, value: "/data/console-root.key" }
+            - { name: CONSOLE_CRL, value: "/data/console-crl.json" }
+            - { name: CONSOLE_VAULT_PASSPHRASE, value: "demo-vault-passphrase" }
+            - { name: CONSOLE_USERS, value: "showcase-operator-token=operator" }
+          volumeMounts: [{ name: data, mountPath: /data }]
+          startupProbe:  { httpGet: { path: /healthz, port: 8455 }, periodSeconds: 5, failureThreshold: 40 }
+          livenessProbe: { httpGet: { path: /healthz, port: 8455 }, periodSeconds: 20 }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec: { accessModes: ["ReadWriteOnce"], resources: { requests: { storage: 256Mi } } }
+---
+########## operator — auto-approves enrollments (DEV ONLY) ##########
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: operator, namespace: j3nna-showcase }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: operator } }
+  template:
+    metadata: { labels: { app: operator } }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 65532 }
+      containers:
+        - name: operator
+          image: mesh-showcase:dev
+          imagePullPolicy: IfNotPresent
+          command: ["/app/operator"]
+          env:
+            - { name: OP_CONSOLE, value: "http://console:8455" }
+            - { name: OP_TOKEN, value: "showcase-operator-token" }
+---
+########## signal-bridge (+ registrar + carrier co-located: share localhost + the secret file) ##########
+apiVersion: v1
+kind: Service
+metadata: { name: signal-bridge, namespace: j3nna-showcase }
+spec:
+  selector: { app: signal-bridge }
+  ports: [{ name: mesh, port: 8483, targetPort: 8483 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: signal-bridge, namespace: j3nna-showcase }
+spec:
+  serviceName: signal-bridge
+  replicas: 1
+  selector: { matchLabels: { app: signal-bridge } }
+  template:
+    metadata: { labels: { app: signal-bridge } }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532 }
+      volumes: [{ name: data, emptyDir: {} }, { name: shared, emptyDir: {} }]
+      containers:
+        - name: signal-bridge
+          image: mesh-showcase:dev
+          imagePullPolicy: IfNotPresent
+          command: ["/app/signal-bridge"]
+          ports: [{ containerPort: 8483 }]
+          env:
+            - { name: SIGNAL_CONSOLE, value: "http://console:8455" }
+            - { name: SIGNAL_LISTEN, value: "0.0.0.0:8483" }
+            - { name: SIGNAL_ADVERTISE, value: "http://signal-bridge:8483" }
+            - { name: SIGNAL_HTTP, value: "127.0.0.1:8484" }   # loopback mgmt — registrar shares this pod
+            - { name: SIGNAL_DISCOVER, value: "false" }
+            - { name: SIGNAL_VAULT, value: "/data/signal-vault.enc" }
+            - { name: SIGNAL_IDENTITY, value: "/data/signal-bridge.id" }
+            - { name: SIGNAL_VAULT_PASSPHRASE, value: "demo-signal-passphrase" }
+          volumeMounts: [{ name: data, mountPath: /data }]
+        - name: registrar     # registers the carrier webhook over the shared loopback; writes the secret
+          image: mesh-showcase:dev
+          imagePullPolicy: IfNotPresent
+          command: ["/app/registrar"]
+          env:
+            - { name: REGISTRAR_SIGNAL, value: "http://127.0.0.1:8484" }
+            - { name: REGISTRAR_CARRIER_URL, value: "http://127.0.0.1:8494/hook" }
+            - { name: REGISTRAR_SECRET_FILE, value: "/shared/carrier.secret" }
+          volumeMounts: [{ name: shared, mountPath: /shared }]
+        - name: carrier       # the external receiver, co-located so signal-bridge reaches it on localhost
+          image: mesh-showcase:dev
+          imagePullPolicy: IfNotPresent
+          command: ["/app/carrier"]
+          env:
+            - { name: CARRIER_LISTEN, value: "127.0.0.1:8494" }
+            - { name: CARRIER_HMAC_SECRET_FILE, value: "/shared/carrier.secret" }
+          volumeMounts: [{ name: shared, mountPath: /shared }]
+---
+########## the showcase services ##########
+apiVersion: v1
+kind: Service
+metadata: { name: dispatch, namespace: j3nna-showcase }
+spec: { selector: { app: dispatch }, ports: [{ port: 8492, targetPort: 8492 }] }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: dispatch, namespace: j3nna-showcase }
+spec:
+  serviceName: dispatch
+  replicas: 1
+  selector: { matchLabels: { app: dispatch } }
+  template:
+    metadata: { labels: { app: dispatch } }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532 }
+      containers:
+        - name: dispatch
+          image: mesh-showcase:dev
+          imagePullPolicy: IfNotPresent
+          command: ["/app/dispatch-svc"]
+          ports: [{ containerPort: 8492 }]
+          env:
+            - { name: DISPATCH_CONSOLE, value: "http://console:8455" }
+            - { name: DISPATCH_SEEDS, value: "http://signal-bridge:8483" }
+            - { name: DISPATCH_ADVERTISE, value: "http://dispatch:8492" }
+            - { name: DISPATCH_LISTEN, value: "0.0.0.0:8492" }
+            - { name: DISPATCH_DISCOVER, value: "false" }
+            - { name: DISPATCH_VAULT, value: "/data/dispatch-vault.enc" }
+            - { name: DISPATCH_VAULT_PASSPHRASE, value: "demo-dispatch-passphrase" }
+            - { name: DISPATCH_IDENTITY, value: "/data/dispatch.id" }
+          volumeMounts: [{ name: data, mountPath: /data }]
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec: { accessModes: ["ReadWriteOnce"], resources: { requests: { storage: 256Mi } } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: inventory, namespace: j3nna-showcase }
+spec: { selector: { app: inventory }, ports: [{ port: 8490, targetPort: 8490 }] }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: inventory, namespace: j3nna-showcase }
+spec:
+  serviceName: inventory
+  replicas: 1
+  selector: { matchLabels: { app: inventory } }
+  template:
+    metadata: { labels: { app: inventory } }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532 }
+      containers:
+        - name: inventory
+          image: mesh-showcase:dev
+          imagePullPolicy: IfNotPresent
+          command: ["/app/inventory-svc"]
+          ports: [{ containerPort: 8490 }]
+          env:
+            - { name: INV_CONSOLE, value: "http://console:8455" }
+            - { name: INV_SEEDS, value: "http://signal-bridge:8483" }
+            - { name: INV_ADVERTISE, value: "http://inventory:8490" }
+            - { name: INV_LISTEN, value: "0.0.0.0:8490" }
+            - { name: INV_DISCOVER, value: "false" }
+            - { name: INV_ALLOW_URLS, value: "http://dispatch:8492" }
+            - { name: INV_IDENTITY, value: "/data/inventory.id" }
+          volumeMounts: [{ name: data, mountPath: /data }]
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec: { accessModes: ["ReadWriteOnce"], resources: { requests: { storage: 256Mi } } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: quote, namespace: j3nna-showcase }
+spec: { selector: { app: quote }, ports: [{ port: 8491, targetPort: 8491 }] }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: quote, namespace: j3nna-showcase }
+spec:
+  serviceName: quote
+  replicas: 1
+  selector: { matchLabels: { app: quote } }
+  template:
+    metadata: { labels: { app: quote } }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532 }
+      containers:
+        - name: quote
+          image: mesh-showcase:dev
+          imagePullPolicy: IfNotPresent
+          command: ["/app/quote-svc"]
+          ports: [{ containerPort: 8491 }]
+          env:
+            - { name: QUOTE_CONSOLE, value: "http://console:8455" }
+            - { name: QUOTE_SEEDS, value: "http://signal-bridge:8483" }
+            - { name: QUOTE_ADVERTISE, value: "http://quote:8491" }
+            - { name: QUOTE_LISTEN, value: "0.0.0.0:8491" }
+            - { name: QUOTE_DISCOVER, value: "false" }
+            - { name: QUOTE_IDENTITY, value: "/data/quote.id" }
+          volumeMounts: [{ name: data, mountPath: /data }]
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec: { accessModes: ["ReadWriteOnce"], resources: { requests: { storage: 256Mi } } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: desk, namespace: j3nna-showcase }
+spec: { selector: { app: desk }, ports: [{ port: 8493, targetPort: 8493 }] }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: desk, namespace: j3nna-showcase }
+spec:
+  serviceName: desk
+  replicas: 1
+  selector: { matchLabels: { app: desk } }
+  template:
+    metadata: { labels: { app: desk } }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532 }
+      containers:
+        - name: desk
+          image: mesh-showcase:dev
+          imagePullPolicy: IfNotPresent
+          command: ["/app/desk"]
+          ports: [{ containerPort: 8493 }]
+          env:
+            - { name: DESK_CONSOLE, value: "http://console:8455" }
+            - { name: DESK_SEEDS, value: "http://signal-bridge:8483" }
+            - { name: DESK_ADVERTISE, value: "http://desk:8493" }
+            - { name: DESK_LISTEN, value: "0.0.0.0:8493" }
+            - { name: DESK_DISCOVER, value: "false" }
+            - { name: DESK_IDENTITY, value: "/data/desk.id" }
+          volumeMounts: [{ name: data, mountPath: /data }]
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec: { accessModes: ["ReadWriteOnce"], resources: { requests: { storage: 256Mi } } }
+---
+########## room-view — the human (port-forward to reach the chat UI) ##########
+apiVersion: v1
+kind: Service
+metadata: { name: room-view, namespace: j3nna-showcase }
+spec:
+  selector: { app: room-view }
+  ports: [{ name: mesh, port: 8485, targetPort: 8485 }, { name: web, port: 8487, targetPort: 8487 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: room-view, namespace: j3nna-showcase }
+spec:
+  serviceName: room-view
+  replicas: 1
+  selector: { matchLabels: { app: room-view } }
+  template:
+    metadata: { labels: { app: room-view } }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532 }
+      containers:
+        - name: room-view
+          image: mesh-showcase:dev
+          imagePullPolicy: IfNotPresent
+          command: ["/app/room-view"]
+          ports: [{ containerPort: 8485 }, { containerPort: 8487 }]
+          env:
+            - { name: ROOMVIEW_CONSOLE, value: "http://console:8455" }
+            - { name: ROOMVIEW_SEEDS, value: "http://signal-bridge:8483" }
+            - { name: ROOMVIEW_LISTEN, value: "0.0.0.0:8485" }
+            - { name: ROOMVIEW_ADVERTISE, value: "http://room-view:8485" }
+            - { name: ROOMVIEW_HTTP, value: "0.0.0.0:8487" }
+            - { name: ROOMVIEW_DISCOVER, value: "false" }
+            - { name: ROOMVIEW_NAME, value: "patron" }
+            - { name: ROOMVIEW_ROOM, value: "desk" }
+            - { name: ROOMVIEW_IDENTITY, value: "/data/room-view.id" }
+          volumeMounts: [{ name: data, mountPath: /data }]
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec: { accessModes: ["ReadWriteOnce"], resources: { requests: { storage: 256Mi } } }
